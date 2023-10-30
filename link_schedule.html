@@ -49,7 +49,7 @@
 
   <script>
 
-    sendData(refresh = false);
+    // sendData(refresh = false);
 
     /* ------------------------------------------------ */
 
@@ -124,11 +124,11 @@
             )
           )
         );
-      }
 
-      tblrow
-        .addChild(gamerow)
-        .addChild(pickrow);
+        tblrow.addChild(gamerow).addChild(pickrow);
+      } else {
+        tblrow.addChild(gamerow);
+      }
 
       return tblrow;
     }
@@ -338,6 +338,18 @@
 
         if (!is_shown) row.classList.remove('hide');
         if (is_shown) row.classList.add('hide');
+      }
+    }
+
+    /* ------------------------------------------------ */
+
+    function togglePickRow(tblrow) {
+
+      let picks = tblrow.querySelector('.pickrow');
+      if (!(picks == null)) {
+        let is_shown = picks.classList.contains('hide') == false;
+        if (!is_shown) picks.classList.remove('hide');
+        if (is_shown) picks.classList.add('hide');
       }
     }
 

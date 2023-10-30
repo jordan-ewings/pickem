@@ -52,6 +52,7 @@ class El {
     this.src = '';
     this.inner = '';
     this.id = '';
+    this.onclick = '';
   }
 
   addId(i) {
@@ -73,6 +74,11 @@ class El {
 
   addSrc(s) {
     this.src = s;
+    return this;
+  }
+
+  addOnClick(i) {
+    this.onclick = i;
     return this;
   }
 
@@ -101,6 +107,7 @@ class El {
     if (this.id != '') v += ` id="${this.id}"`;
     if (this.classes != '') v += ` class="${this.classes}"`;
     if (this.styles != '') v += ` style="${this.styles}"`;
+    if (this.onclick != '') v += ` onclick="${this.onclick}"`;
     if (this.src != '') v += ` src="${this.src}"`;
     v += `>`;
     if (this.inner != '') v += `${this.inner}`;
