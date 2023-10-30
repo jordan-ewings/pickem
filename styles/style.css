@@ -6,7 +6,7 @@ body {
 }
 
 .text-dim {
-  color: #9b9b9b;
+  color: #9b9b9b !important;
 }
 
 .bg-dim {

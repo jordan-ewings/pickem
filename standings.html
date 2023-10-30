@@ -8,14 +8,16 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jordan-ewings/pickem@main/styles/style.css">
   <style>
-
+    td {
+      background-color: #1e1e1e !important;
+    }
   </style>
 </head>
 
 <body style="font-size:11pt;">
   <div class="container mx-auto px-0" style="max-width: 600px;">
     <div class="table-responsive">
-      <table id="mytable" class="table bg-main">
+      <table id="mytable" class="table align-middle">
         <tbody>
 
         </tbody>
@@ -39,6 +41,7 @@
     function buildRows(proc) {
 
       let rows = '';
+
 
       let hf = 'text-center text-dim opacity-50 text-smaller fw-semibold';
       let header = new El('tr').addClass('pb-2');
