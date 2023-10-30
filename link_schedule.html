@@ -9,13 +9,14 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jordan-ewings/pickem@main/styles/style.css">
   <style>
     #tblGames>div {
-      height: 100vh;
+      height: 80vh;
       overflow-y: scroll;
-      overscroll-behavior-y: auto;
-      scroll-snap-type: y mandatory;
+      overscroll-behavior-y: none;
+      scroll-snap-type: y proximity;
     }
 
-    #tblGames>div>* {
+
+    #tblGames>div>div {
       scroll-snap-align: start;
       scroll-snap-stop: normal;
     }
@@ -156,7 +157,9 @@
         let days = w.games.map((x) => x.gameday_long);
         days = days.filter((c, index) => days.indexOf(c) === index);
         days.forEach((d) => {
-          rows.addChild(new El('h6').addClass('text-center fw-semibold pt-3 pb-3 mb-0 mt-0 bg-main').addChild(d));
+          rows.addChild(new El('div')
+            .addChild(new El('h6').addClass('text-center fw-semibold pt-3 pb-3 mb-0 mt-0 bg-main').addChild(d))
+          );
 
           let games = w.games.filter((x) => x.gameday_long == d);
           games.forEach((g) => rows.addChild(make_tblrow(g)));
