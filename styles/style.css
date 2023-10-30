@@ -3,7 +3,6 @@ body {
   font-size: 12pt;
   color: #efefef;
   background-color: #1e1e1e;
-  margin-bottom: 160px;
 }
 
 .text-dim {
@@ -20,16 +19,4 @@ body {
 
 .text-smaller {
   font-size: .75rem;
-}
-
-#tblGames .hide {
-  display: none !important;
-  height: 0 !important;
-  border: 0 !important;
-}
-
-#filterCont button.active {
-  color: #efefef !important;
-  opacity: 1 !important;
-  font-weight: 700 !important;
 }
