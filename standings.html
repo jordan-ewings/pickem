@@ -49,8 +49,9 @@
 
     function buildRows(proc) {
 
-      let rows = '';
+      const tbody = document.getElementById('mytable').querySelector('tbody');
 
+      let rows = '';
 
       let hf = 'text-center text-dim opacity-50 text-smaller fw-semibold px-0';
       let header = new El('tr').addClass('pb-2');

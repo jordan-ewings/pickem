@@ -114,4 +114,11 @@ class El {
     v += `</${this.tag}>`;
     return v;
   }
+
+  toDOM() {
+    let p = document.createElement('div');
+    p.innerHTML = this.html();
+    let elem = p.firstChild;
+    return elem;
+  }
 }

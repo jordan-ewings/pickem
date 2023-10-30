@@ -63,6 +63,13 @@
 
     sendData(refresh = false);
 
+    function toDOM(el) {
+      let p = document.createElement('div');
+      p.innerHTML = el.html();
+      let elem = p.firstChild;
+      return elem;
+    }
+
     /* ------------------------------------------------ */
 
     async function sendData(refresh) {
