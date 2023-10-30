@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+  <style>
+    body {
+      font-family: -apple-system, 'Helvetica Neue', sans-serif;
+      background-color: #1e1e1e;
+      max-width: 700px;
+      margin: 0;
+    }
+
+    .table {
+      font-size: 11pt;
+    }
+
+    .text-dim {
+      color: #9b9b9b;
+    }
+
+    .table td {
+      font-family: inherit;
+      background-color: inherit;
+      color: inherit;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="table-responsive m-0 p-0">
+    <table id="mytable" class="table table-sm align-middle table-borderless m-0">
+      <tbody>
+
+      </tbody>
+    </table>
+  </div>
+
+  <script>
+    var formType = "TNF";
+    sendData();
+
+    async function sendData() {
+      const data = await getSheet('Info');
+      const info = getCurrentForms(data)[formType];
+      const formName = info.title;
+      const formData = await getSheet(formName);
+      const rows = make_prows(formData);
+
+      document.getElementById("mytable").querySelector('tbody').innerHTML = rows;
+    }
+
+    function getCurrentForms(infoData) {
+      let forms = infoData;
+      forms.reverse();
+      let tnf = forms.filter((x) => x['Form'].includes('TNF') == true)[0];
+      let wknd = forms.filter((x) => x['Form'].includes('TNF') == false)[0];
+      return {
+        TNF: {
+          title: tnf['Form'],
+          status: tnf['Status']
+        },
+        WEEKEND: {
+          title: wknd['Form'],
+          status: wknd['Status']
+        }
+      };
+    }
+
+    function make_prows(formData) {
+      let playerList = ['Austin', 'Carly', 'Carter', 'John', 'Jordan', 'Kayla', 'Kristen', 'Kristy', 'Stella'];
+      let psublist = formData.map((row) => row['Select your name:']);
+      psublist.push(...playerList);
+      let players = psublist.filter((c, index) => psublist.indexOf(c) == index);
+      let rows = '';
+      players.forEach((p) => {
+        let player = p;
+        let status = 'PENDING';
+        let rec = formData.filter((row) => row['Select your name:'] == player);
+        let pClass = " "
+        if (rec.length > 0) {
+          status = 'SUBMITTED';
+          pClass += 'fw-medium';
+        } else {
+          pClass += 'text-dim '
+        }
+
+        let d = '';
+        d += make('td', player)
+        d += make('td', status, classes = 'text-end')
+        let row = make('tr', d, classes = pClass)
+        rows += row;
+      });
+      return rows;
+    }
+
+    async function getSheet(sheet) {
+      const shname = sheet.split(' ').join('+');
+      const resp = await fetch('https://docs.google.com/spreadsheets/d/14ZYopWScY-nkBJ4Eq7DpLqRw6s2Fre3EWYkKsCIc8lU/gviz/tq?tqx=out:json&tq&sheet=' + shname);
+      const raw = await resp.text();
+      const table = JSON.parse(raw.substring(47).slice(0, -2))['table'];
+      console.log(table)
+
+      let headers;
+      let data;
+      if (table.parsedNumHeaders == 1) {
+        headers = table.cols.map((x) => {
+          if (x) return x.label;
+        }).filter(function (el) {
+          return el != null;
+        });
+        data = table.rows.filter((x, index) => index >= 0);
+      } else {
+        headers = table.rows[0].c.map((x) => {
+          if (x) return x.v;
+        }).filter(function (el) {
+          return el != null;
+        });
+        data = table.rows.filter((x, index) => index >= 1);
+      }
+
+      data = data.map((row) => {
+        let d = {};
+        let cols = headers;
+        cols.forEach((c) => {
+          let val = row.c[headers.indexOf(c)];
+          if (val == null) {
+            d[c] = '';
+          } else {
+            if (val.f) {
+              d[c] = val.f;
+            } else {
+              d[c] = val.v;
+            }
+          }
+        });
+        return d;
+      });
+
+      console.log(data)
+      return data;
+    }
+
+    function make(tag, content, classes, styles) {
+      let inner = '';
+      if (content) inner += content;
+      let r = `<${tag}`;
+      if (classes) r += ` class="${classes}"`;
+      if (styles) r += ` style="${styles}"`;
+      if (tag == 'img') {
+        r += ` src="${inner}"/>`;
+      } else {
+        r += `>${inner}</${tag}>`;
+      }
+      return r;
+    }
+
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous">
+  </script>
+</body>
+
+</html>
