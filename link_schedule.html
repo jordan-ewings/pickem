@@ -51,7 +51,6 @@
     </div>
     <div id="view-loading" class="container text-center justify-content-center w-75">
       <div class="d-flex column-gap-1 align-items-baseline justify-content-center">
-        <i class="fa-solid fa-circle-check fa-bounce d-none text-primary-emphasis"></i>
         <h5></h5>
       </div>
       <div class="progress">
@@ -68,23 +67,23 @@
 
     async function sendData(refresh) {
       setLoadingBar(0);
-      setLoadingBar(25, 'Fetching games...');
+      setLoadingBar(33, 'Fetching games...');
       const currweek = await getCurrentWeek();
       const data = await getSheet('dbGames');
 
-      setLoadingBar(50, 'Fetching picks...');
+      setLoadingBar(66, 'Fetching picks...');
       const picks = await getSheet('dbFull');
 
       let proc = procData(data, picks);
       if (refresh == true) {
-        setLoadingBar(75, 'Fetching live scores...');
+        setLoadingBar(100, 'Fetching live scores...');
         const livedata = await fetchLive(currweek);
         proc = updateData(proc, livedata);
       } else {
-        setLoadingBar(75, 'Fetching scores...');
+        setLoadingBar(100, 'Fetching scores...');
       }
 
-      setLoadingBar(100, 'Done');
+      // setLoadingBar(100, 'Done');
       console.log(proc);
       setTimeout(function () {
         buildRows(proc);
@@ -92,7 +91,7 @@
         document.getElementById('view-loading').classList.add('d-none');
         document.getElementById("toggle-picks-btn").classList.remove('d-none');
         document.getElementById("progGames").classList.remove('d-none');
-      }, 500);
+      }, 100);
     }
 
     /* ------------------------------------------------ */
@@ -496,9 +495,6 @@
       const bar = div.querySelector('.progress-bar');
       const text = div.querySelector('h5');
       if (value) bar.style.width = value + '%';
-      if (value && value == 100) {
-        div.querySelector('i').classList.remove('d-none');
-      }
       if (task) text.innerHTML = task;
     }
 
