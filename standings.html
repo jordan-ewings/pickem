@@ -9,15 +9,24 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jordan-ewings/pickem@main/styles/style.css">
   <style>
     td {
+      font-family: -apple-system, 'Helvetica Neue', sans-serif;
+      font-size: 11pt;
+      color: #efefef !important;
       background-color: #1e1e1e !important;
+      padding-top: 6px !important;
+      padding-bottom: 6px !important;
+    }
+
+    td.text-dim {
+      color: #9b9b9b !important;
     }
   </style>
 </head>
 
-<body style="font-size:11pt;">
+<body style="margin:0;">
   <div class="container mx-auto px-0" style="max-width: 600px;">
     <div class="table-responsive">
-      <table id="mytable" class="table align-middle">
+      <table id="mytable" class="table table-sm table-borderless align-middle m-0">
         <tbody>
 
         </tbody>
@@ -26,6 +35,7 @@
   </div>
 
   <script>
+
     sendData();
 
     /* ------------------------------------------------ */
@@ -33,7 +43,6 @@
     async function sendData() {
       const data = await getSheet('Standings');
       buildRows(data);
-      // document.getElementById("mytable").querySelector('tbody').innerHTML = rows;
     }
 
     /* ------------------------------------------------ */
@@ -43,7 +52,7 @@
       let rows = '';
 
 
-      let hf = 'text-center text-dim opacity-50 text-smaller fw-semibold';
+      let hf = 'text-center text-dim opacity-50 text-smaller fw-semibold px-0';
       let header = new El('tr').addClass('pb-2');
       header.addChild(new El('td').addClass(hf).addChild(''));
       header.addChild(new El('td').addClass(hf).addChild(''));
@@ -58,9 +67,9 @@
         if (g.gb == '') g.gb = '-';
 
         let row = new El('tr').addClass('pb-2');
-        row.addChild(new El('td').addClass('text-nowrap text-end text-dim text-smaller')
+        row.addChild(new El('td').addClass('text-nowrap text-end text-primary-emphasis text-smaller')
           .addChild(g.rank));
-        row.addChild(new El('td').addClass('text-nowrap fw-medium')
+        row.addChild(new El('td').addClass('text-nowrap fw-medium pe-4')
           .addChild(g.player));
         row.addChild(new El('td').addClass('text-nowrap text-center')
           .addChild(g.rec_week));
@@ -88,56 +97,6 @@
       const data = procSheet(raw);
       return data;
     }
-
-    // /* ------------------------------------------------ */
-
-    // function buildRows(proc) {
-
-    //   let rows = '';
-    //   let cf = {};
-    //   cf.rank = 'col-1 ps-2 pe-0';
-    //   cf.player = 'col-3 ps-2 pe-0';
-    //   cf.rec_week = 'col px-2';
-    //   cf.rec = 'col px-2';
-    //   cf.gb = 'col-1 px-2';
-    //   cf.pc_dog_pick = 'col px-2';
-    //   cf.pc_dog_win = 'col ps-2 pe-2';
-
-    //   let hf = 'text-center text-dim opacity-50 text-smaller fw-semibold';
-    //   let header = new El('div').addClass('row g-4 flex-nowrap mx-0 pb-2 align-items-center');
-    //   header.addChild(new El('div').addClass(hf).addClass(cf.rank).addChild(''));
-    //   header.addChild(new El('div').addClass(hf).addClass(cf.player).addChild(''));
-    //   header.addChild(new El('div').addClass(hf).addClass(cf.rec_week).addChild('WK'));
-    //   header.addChild(new El('div').addClass(hf).addClass(cf.rec).addChild('TTL'));
-    //   header.addChild(new El('div').addClass(hf).addClass(cf.gb).addChild('GB'));
-    //   header.addChild(new El('div').addClass(hf).addClass(cf.pc_dog_pick).addChild('DOG'));
-    //   header.addChild(new El('div').addClass(hf).addClass(cf.pc_dog_win).addChild('DOG W'));
-    //   rows += header.html();
-
-    //   proc.forEach((g) => {
-    //     if (g.gb == '') g.gb = '-';
-
-    //     let row = new El('div').addClass('row flex-nowrap mx-0 pb-2 align-items-center');
-    //     row.addChild(new El('div').addClass('text-nowrap text-end text-dim text-smaller')
-    //       .addClass(cf.rank).addChild(g.rank));
-    //     row.addChild(new El('div').addClass('text-nowrap fw-medium')
-    //       .addClass(cf.player).addChild(g.player));
-    //     row.addChild(new El('div').addClass('text-nowrap text-center')
-    //       .addClass(cf.rec_week).addChild(g.rec_week));
-    //     row.addChild(new El('div').addClass('text-nowrap text-center')
-    //       .addClass(cf.rec).addChild(g.rec));
-    //     row.addChild(new El('div').addClass('text-nowrap text-center text-dim')
-    //       .addClass(cf.gb).addChild(g.gb));
-    //     row.addChild(new El('div').addClass('text-nowrap text-center text-dim')
-    //       .addClass(cf.pc_dog_pick).addChild(g.pc_dog_pick));
-    //     row.addChild(new El('div').addClass('text-nowrap text-center text-dim')
-    //       .addClass(cf.pc_dog_win).addChild(g.pc_dog_win));
-
-    //     rows += row.html();
-    //   });
-
-    //   return rows;
-    // }
 
   </script>
   <script src="https://cdn.jsdelivr.net/gh/jordan-ewings/pickem@main/scripts/base.js"></script>
