@@ -37,7 +37,10 @@
 
     </div>
     <div id="view-loading" class="container text-center justify-content-center w-75">
-      <h5></h5>
+      <div class="d-flex column-gap-1 align-items-baseline justify-content-center">
+        <i class="fa-solid fa-circle-check fa-bounce d-none text-primary-emphasis"></i>
+        <h5></h5>
+      </div>
       <div class="progress">
         <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 0%"></div>
       </div>
@@ -48,29 +51,25 @@
 
     sendData(refresh = false);
 
-    /* ------------------------------------------------ */
-
-    function setLoadingBar(value, task, close = false) {
-      const div = document.getElementById('view-loading');
-      const bar = div.querySelector('.progress-bar');
-      const text = div.querySelector('h5');
-      if (value) bar.style.width = value + '%';
-      if (task) text.innerHTML = task;
-    }
 
     /* ------------------------------------------------ */
 
     async function sendData(refresh) {
-      setLoadingBar(0, 'Fetching games...');
+      setLoadingBar(0);
+      setLoadingBar(25, 'Fetching games...');
       const currweek = await getCurrentWeek();
       const data = await getSheet('dbGames');
-      setLoadingBar(33, 'Fetching picks...');
+
+      setLoadingBar(50, 'Fetching picks...');
       const picks = await getSheet('dbFull');
+
       let proc = procData(data, picks);
       if (refresh == true) {
-        setLoadingBar(66, 'Fetching live scores...');
+        setLoadingBar(75, 'Fetching live scores...');
         const livedata = await fetchLive(currweek);
         proc = updateData(proc, livedata);
+      } else {
+        setLoadingBar(75, 'Fetching scores...');
       }
 
       setLoadingBar(100, 'Done');
@@ -461,6 +460,19 @@
 
       console.log(data);
       return data;
+    }
+
+    /* ------------------------------------------------ */
+
+    function setLoadingBar(value, task, close = false) {
+      const div = document.getElementById('view-loading');
+      const bar = div.querySelector('.progress-bar');
+      const text = div.querySelector('h5');
+      if (value) bar.style.width = value + '%';
+      if (value && value == 100) {
+        div.querySelector('i').classList.remove('d-none');
+      }
+      if (task) text.innerHTML = task;
     }
 
     /* ------------------------------------------------ */
