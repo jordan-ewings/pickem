@@ -6,39 +6,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-  <style>
-    body {
-      font-family: -apple-system, 'Helvetica Neue', sans-serif;
-      font-size: 11pt;
-      color: #efefef;
-      background-color: #1e1e1e;
-    }
-
-    .text-dim {
-      color: #9b9b9b;
-    }
-
-    .bg-dim {
-      background-color: #181818 !important;
-    }
-
-    .bg-main {
-      background-color: #1e1e1e;
-    }
-
-    .text-smaller {
-      font-size: .75rem;
-    }
-  </style>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jordan-ewings/pickem@main/styles/style.css">
 </head>
 
-<body>
+<body style="font-size:11pt;">
   <div id="mytable" class="container mx-auto justify-content-center px-0" style="max-width: 600px;">
-
   </div>
 
   <script>
     sendData();
+
+    /* ------------------------------------------------ */
 
     async function sendData() {
       const data = await getSheet('Standings');
@@ -46,40 +24,49 @@
       document.getElementById("mytable").innerHTML = rows;
     }
 
+    /* ------------------------------------------------ */
+
     function buildRows(proc) {
 
       let rows = '';
+      let cf = {};
+      cf.rank = 'col-1 px-0';
+      cf.player = 'col-3 ps-2';
+      cf.rec_week = 'col px-0';
+      cf.rec = 'col px-0';
+      cf.gb = 'col px-0';
+      cf.pc_dog_pick = 'col px-0';
+      cf.pc_dog_win = 'col px-0';
+
+      let hf = 'text-center text-dim opacity-50 text-smaller fw-semibold';
       let header = new El('div').addClass('row mx-0 pb-2 align-items-center');
-      header.addChild(new El('div').addClass('col-1 px-0 text-center text-dim opacity-50 text-smaller fw-semibold').addChild(''));
-      header.addChild(new El('div').addClass('col-3 ps-2 text-center text-dim opacity-50 text-smaller fw-semibold').addChild(''));
-      header.addChild(new El('div').addClass('col px-0 text-center text-dim opacity-50 text-smaller fw-semibold').addChild('WEEK'));
-      header.addChild(new El('div').addClass('col px-0 text-center text-dim opacity-50 text-smaller fw-semibold').addChild('TOTAL'));
-      header.addChild(new El('div').addClass('col px-0 text-center text-dim opacity-50 text-smaller fw-semibold').addChild('GB'));
-      header.addChild(new El('div').addClass('col px-0 text-center text-dim opacity-50 text-smaller fw-semibold').addChild('DOG %'));
-      header.addChild(new El('div').addClass('col px-0 text-center text-dim opacity-50 text-smaller fw-semibold').addChild('DOG W%'));
+      header.addChild(new El('div').addClass(hf).addClass(cf.rank).addChild(''));
+      header.addChild(new El('div').addClass(hf).addClass(cf.player).addChild(''));
+      header.addChild(new El('div').addClass(hf).addClass(cf.rec_week).addChild('WK'));
+      header.addChild(new El('div').addClass(hf).addClass(cf.rec).addChild('TTL'));
+      header.addChild(new El('div').addClass(hf).addClass(cf.gb).addChild('GB'));
+      header.addChild(new El('div').addClass(hf).addClass(cf.pc_dog_pick).addChild('DOG'));
+      header.addChild(new El('div').addClass(hf).addClass(cf.pc_dog_win).addChild('DOG W'));
       rows += header.html();
 
       proc.forEach((g) => {
-        let gamesback = g.gb;
-        if (gamesback == '') {
-          gamesback = '-';
-        }
+        if (g.gb == '') g.gb = '-';
 
         let row = new El('div').addClass('row mx-0 pb-2 align-items-center');
-        row.addChild(new El('div').addClass('col-1 px-0 text-nowrap text-end text-dim text-smaller')
-          .addChild(g.rank));
-        row.addChild(new El('div').addClass('col-3 ps-2 text-nowrap fw-medium')
-          .addChild(g.player));
-        row.addChild(new El('div').addClass('col px-0 text-nowrap text-center')
-          .addChild(g.rec_week));
-        row.addChild(new El('div').addClass('col px-0 text-nowrap text-center')
-          .addChild(g.rec));
-        row.addChild(new El('div').addClass('col px-0 text-nowrap text-center text-dim')
-          .addChild(gamesback));
-        row.addChild(new El('div').addClass('col px-0 text-nowrap text-center text-dim')
-          .addChild(g.pc_dog_pick));
-        row.addChild(new El('div').addClass('col px-0 text-nowrap text-center text-dim')
-          .addChild(g.pc_dog_win));
+        row.addChild(new El('div').addClass('text-nowrap text-end text-dim text-smaller')
+          .addClass(cf.rank).addChild(g.rank));
+        row.addChild(new El('div').addClass('text-nowrap fw-medium')
+          .addClass(cf.player).addChild(g.player));
+        row.addChild(new El('div').addClass('text-nowrap text-center')
+          .addClass(cf.rec_week).addChild(g.rec_week));
+        row.addChild(new El('div').addClass('text-nowrap text-center')
+          .addClass(cf.rec).addChild(g.rec));
+        row.addChild(new El('div').addClass('text-nowrap text-center text-dim')
+          .addClass(cf.gb).addChild(g.gb));
+        row.addChild(new El('div').addClass('text-nowrap text-center text-dim')
+          .addClass(cf.pc_dog_pick).addChild(g.pc_dog_pick));
+        row.addChild(new El('div').addClass('text-nowrap text-center text-dim')
+          .addClass(cf.pc_dog_win).addChild(g.pc_dog_win));
 
         rows += row.html();
       });
@@ -87,127 +74,18 @@
       return rows;
     }
 
+    /* ------------------------------------------------ */
+
     async function getSheet(sheet) {
       const shname = sheet.split(' ').join('+');
       const resp = await fetch('https://docs.google.com/spreadsheets/d/14ZYopWScY-nkBJ4Eq7DpLqRw6s2Fre3EWYkKsCIc8lU/gviz/tq?tqx=out:json&tq&sheet=' + shname);
       const raw = await resp.text();
-      const table = JSON.parse(raw.substring(47).slice(0, -2))['table'];
-      console.log(table)
-
-      let headers;
-      let data;
-      if (table.parsedNumHeaders == 1) {
-        headers = table.cols.map((x) => {
-          if (x) return x.label;
-        }).filter(function (el) {
-          return el != null;
-        });
-        data = table.rows.filter((x, index) => index >= 0);
-      } else {
-        headers = table.rows[0].c.map((x) => {
-          if (x) return x.v;
-        }).filter(function (el) {
-          return el != null;
-        });
-        data = table.rows.filter((x, index) => index >= 1);
-      }
-
-      data = data.map((row) => {
-        let d = {};
-        let cols = headers;
-        cols.forEach((c) => {
-          let val = row.c[headers.indexOf(c)];
-          if (val == null) {
-            d[c] = '';
-          } else {
-            if (val.f) {
-              d[c] = val.f;
-            } else {
-              d[c] = val.v;
-            }
-          }
-        });
-        return d;
-      });
-
-      console.log(data)
+      const data = procSheet(raw);
       return data;
     }
 
-    // let cweek = g.rec_week;
-    // let cwins = parseInt(cweek.split('-')[0]);
-    // let closs = parseInt(cweek.split('-')[1]);
-    // let cColor = '';
-    // if (cwins > closs) cColor += 'text-success-emphasis';
-    // if (cwins < closs) cColor += 'text-danger-emphasis';
-
-    class El {
-
-      constructor(tag) {
-        this.tag = tag;
-        this.classes = '';
-        this.styles = '';
-        this.src = '';
-        this.inner = '';
-        this.id = '';
-      }
-
-      addId(i) {
-        this.id = i;
-        return this;
-      }
-
-      addClass(c) {
-        this.classes += ' ' + c;
-        this.classes = this.classes.trim();
-        return this;
-      }
-
-      addStyle(s) {
-        this.styles += ' ' + s;
-        this.styles = this.styles.trim();
-        return this;
-      }
-
-      addSrc(s) {
-        this.src = s;
-        return this;
-      }
-
-      addChild(i) {
-        if (!(typeof i === "string")) {
-          this.inner += i.html();
-        } else {
-          this.inner += i;
-        }
-        return this;
-      }
-
-      // addChildren(j) {
-      //   j.forEach((i) => {
-      //     if (!(typeof i === "string")) {
-      //       this.inner += i.html();
-      //     } else {
-      //       this.inner += i;
-      //     }
-      //   });
-      //   return this;
-      // }
-
-      html() {
-        let v = `<${this.tag}`;
-        if (this.id != '') v += ` id="${this.id}"`;
-        if (this.classes != '') v += ` class="${this.classes}"`;
-        if (this.styles != '') v += ` style="${this.styles}"`;
-        if (this.src != '') v += ` src="${this.src}"`;
-        v += `>`;
-        if (this.inner != '') v += `${this.inner}`;
-        v += `</${this.tag}>`;
-        return v;
-      }
-    }
-
   </script>
+  <script src="https://cdn.jsdelivr.net/gh/jordan-ewings/pickem@main/scripts/base.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous">
   </script>
 </body>

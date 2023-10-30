@@ -6,32 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jordan-ewings/pickem@main/styles/style.css">
   <style>
-    body {
-      font-family: -apple-system, 'Helvetica Neue', sans-serif;
-      font-size: 12pt;
-      color: #efefef;
-      background-color: #1e1e1e;
-      margin-bottom: 160px;
-      margin-top: 5px;
-    }
-
-    .text-dim {
-      color: #9b9b9b;
-    }
-
-    .bg-dim {
-      background-color: #181818 !important;
-    }
-
-    .bg-main {
-      background-color: #1e1e1e;
-    }
-
-    .text-smaller {
-      font-size: .75rem;
-    }
-
     #tblGames .hide {
       display: none !important;
       height: 0 !important;
@@ -46,7 +22,7 @@
   </style>
 </head>
 
-<body>
+<body style="margin-bottom: 160px;">
   <div class="container mx-auto px-0" style="max-width: 600px;">
     <div class="mx-1">
       <div id="filterCont" class="btn-group d-flex flex-nowrap overflow-x-scroll" role="group">
@@ -60,7 +36,7 @@
               <div class="progress-bar bg-primary"></div>
             </div>
             <div id="progIn" class="progress" role="progressbar" style="width: 0%">
-              <div class="progress-bar bg-info progress-bar-striped progress-bar-animated"></div>
+              <div class="progress-bar bg-danger progress-bar-striped progress-bar-animated"></div>
             </div>
             <div id="progPre" class="progress" role="progressbar" style="width: 0%">
               <div class="progress-bar bg-dim"></div>
@@ -74,7 +50,9 @@
 
     </div>
     <div id="view-loading" class="container text-center justify-content-center w-75">
-      <h5></h5>
+      <div class="d-flex column-gap-1 align-items-baseline justify-content-center">
+        <h5></h5>
+      </div>
       <div class="progress">
         <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 0%"></div>
       </div>
@@ -85,30 +63,27 @@
 
     sendData(refresh = false);
 
-    function setLoadingBar(value, task, close = false) {
-      const div = document.getElementById('view-loading');
-      const bar = div.querySelector('.progress-bar');
-      const text = div.querySelector('h5');
-      if (value) bar.style.width = value + '%';
-      if (task) text.innerHTML = task;
-    }
-
     /* ------------------------------------------------ */
 
     async function sendData(refresh) {
-      setLoadingBar(0, 'Fetching games...');
+      setLoadingBar(0);
+      setLoadingBar(33, 'Fetching games...');
       const currweek = await getCurrentWeek();
       const data = await getSheet('dbGames');
-      setLoadingBar(33, 'Fetching picks...');
+
+      setLoadingBar(66, 'Fetching picks...');
       const picks = await getSheet('dbFull');
+
       let proc = procData(data, picks);
       if (refresh == true) {
-        setLoadingBar(66, 'Fetching live scores...');
+        setLoadingBar(100, 'Fetching live scores...');
         const livedata = await fetchLive(currweek);
         proc = updateData(proc, livedata);
+      } else {
+        setLoadingBar(100, 'Fetching scores...');
       }
 
-      setLoadingBar(100, 'Done');
+      // setLoadingBar(100, 'Done');
       console.log(proc);
       setTimeout(function () {
         buildRows(proc);
@@ -116,7 +91,7 @@
         document.getElementById('view-loading').classList.add('d-none');
         document.getElementById("toggle-picks-btn").classList.remove('d-none');
         document.getElementById("progGames").classList.remove('d-none');
-      }, 500);
+      }, 100);
     }
 
     /* ------------------------------------------------ */
@@ -161,11 +136,12 @@
             )
           )
         );
-      }
 
-      tblrow
-        .addChild(gamerow)
-        .addChild(pickrow);
+        tblrow.addChild(gamerow).addChild(pickrow);
+        // tblrow.addOnClick('togglePickRow');
+      } else {
+        tblrow.addChild(gamerow);
+      }
 
       return tblrow;
     }
@@ -179,7 +155,9 @@
         let days = w.games.map((x) => x.gameday_long);
         days = days.filter((c, index) => days.indexOf(c) === index);
         days.forEach((d) => {
-          rows.addChild(new El('h6').addClass('text-center fw-semibold pt-0 pb-3 mb-0 mt-3 bg-main').addChild(d));
+          rows.addChild(new El('div')
+            .addChild(new El('h6').addClass('text-center fw-semibold pt-3 pb-3 mb-0 mt-0 bg-main').addChild(d))
+          );
 
           let games = w.games.filter((x) => x.gameday_long == d);
           games.forEach((g) => rows.addChild(make_tblrow(g)));
@@ -301,15 +279,6 @@
 
     /* ------------------------------------------------ */
 
-    async function getCurrentWeek() {
-      let forms = await getSheet('Info');
-      forms.reverse();
-      let currweek = forms[0]['Form'].split(' ')[1];
-      return currweek;
-    }
-
-    /* ------------------------------------------------ */
-
     function filterTable(week) {
 
       let togglebtn = document.getElementById('toggle-picks-btn');
@@ -389,50 +358,14 @@
 
     /* ------------------------------------------------ */
 
-    async function getSheet(sheet) {
-      const shname = sheet.split(' ').join('+');
-      const resp = await fetch('https://docs.google.com/spreadsheets/d/14ZYopWScY-nkBJ4Eq7DpLqRw6s2Fre3EWYkKsCIc8lU/gviz/tq?tqx=out:json&tq&sheet=' + shname);
-      const raw = await resp.text();
-      const table = JSON.parse(raw.substring(47).slice(0, -2))['table'];
-      console.log(table)
+    function togglePickRow(event) {
 
-      let headers;
-      let data;
-      if (table.parsedNumHeaders == 1) {
-        headers = table.cols.map((x) => {
-          if (x) return x.label;
-        }).filter(function (el) {
-          return el != null;
-        });
-        data = table.rows.filter((x, index) => index >= 0);
-      } else {
-        headers = table.rows[0].c.map((x) => {
-          if (x) return x.v;
-        }).filter(function (el) {
-          return el != null;
-        });
-        data = table.rows.filter((x, index) => index >= 1);
+      let picks = event.target.querySelector('.pickrow');
+      if (!(picks == null)) {
+        let is_shown = picks.classList.contains('hide') == false;
+        if (!is_shown) picks.classList.remove('hide');
+        if (is_shown) picks.classList.add('hide');
       }
-
-      data = data.map((row) => {
-        let d = {};
-        let cols = headers;
-        cols.forEach((c) => {
-          let val = row.c[headers.indexOf(c)];
-          if (val == null) {
-            d[c] = '';
-          } else {
-            if (val.f) {
-              d[c] = val.f;
-            } else {
-              d[c] = val.v;
-            }
-          }
-        });
-        return d;
-      });
-
-      return data;
     }
 
     /* ------------------------------------------------ */
@@ -490,26 +423,6 @@
       });
 
       return weeklydata;
-    }
-
-    /* ------------------------------------------------ */
-
-    async function fetchWinProbs(gameid) {
-
-      console.log('FETCHING PROB');
-      const resp = await fetch('https://site.api.espn.com/apis/site/v2/sports/football/nfl/summary?event=' + gameid);
-      const raw = await resp.text();
-      const summ = JSON.parse(raw);
-      let phome;
-      if (summ.winprobability) {
-        phome = summ.winprobability.pop().homeWinPercentage;
-        return phome;
-      } else if (summ.predictor) {
-        phome = summ.predictor.homeTeam.gameProjection;
-        return parseFloat(phome);
-      } else {
-        return '';
-      }
     }
 
     /* ------------------------------------------------ */
@@ -575,73 +488,38 @@
       return data;
     }
 
-    class El {
+    /* ------------------------------------------------ */
 
-      constructor(tag) {
-        this.tag = tag;
-        this.classes = '';
-        this.styles = '';
-        this.src = '';
-        this.inner = '';
-        this.id = '';
-      }
+    function setLoadingBar(value, task, close = false) {
+      const div = document.getElementById('view-loading');
+      const bar = div.querySelector('.progress-bar');
+      const text = div.querySelector('h5');
+      if (value) bar.style.width = value + '%';
+      if (task) text.innerHTML = task;
+    }
 
-      addId(i) {
-        this.id = i;
-        return this;
-      }
+    /* ------------------------------------------------ */
 
-      addClass(c) {
-        this.classes += ' ' + c;
-        this.classes = this.classes.trim();
-        return this;
-      }
+    async function getCurrentWeek() {
+      let forms = await getSheet('Info');
+      forms.reverse();
+      let currweek = forms[0]['Form'].split(' ')[1];
+      return currweek;
+    }
 
-      addStyle(s) {
-        this.styles += ' ' + s;
-        this.styles = this.styles.trim();
-        return this;
-      }
+    /* ------------------------------------------------ */
 
-      addSrc(s) {
-        this.src = s;
-        return this;
-      }
+    async function getSheet(sheet) {
+      const shname = sheet.split(' ').join('+');
+      const resp = await fetch('https://docs.google.com/spreadsheets/d/14ZYopWScY-nkBJ4Eq7DpLqRw6s2Fre3EWYkKsCIc8lU/gviz/tq?tqx=out:json&tq&sheet=' + shname);
+      const raw = await resp.text();
+      const data = procSheet(raw);
 
-      addChild(i) {
-        if (!(typeof i === "string")) {
-          this.inner += i.html();
-        } else {
-          this.inner += i;
-        }
-        return this;
-      }
-
-      addChildren(j) {
-        j.forEach((i) => {
-          if (!(typeof i === "string")) {
-            this.inner += i.html();
-          } else {
-            this.inner += i;
-          }
-        });
-        return this;
-      }
-
-      html() {
-        let v = `<${this.tag}`;
-        if (this.id != '') v += ` id="${this.id}"`;
-        if (this.classes != '') v += ` class="${this.classes}"`;
-        if (this.styles != '') v += ` style="${this.styles}"`;
-        if (this.src != '') v += ` src="${this.src}"`;
-        v += `>`;
-        if (this.inner != '') v += `${this.inner}`;
-        v += `</${this.tag}>`;
-        return v;
-      }
+      return data;
     }
 
   </script>
+  <script src="https://cdn.jsdelivr.net/gh/jordan-ewings/pickem@main/scripts/base.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous">
   </script>
 </body>
