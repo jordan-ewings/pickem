@@ -1,0 +1,36 @@
+body {
+  font-family: -apple-system, 'Helvetica Neue', sans-serif;
+  font-size: 12pt;
+  color: #efefef;
+  background-color: #1e1e1e;
+  margin-bottom: 160px;
+  margin-top: 5px;
+}
+
+.text-dim {
+  color: #9b9b9b;
+}
+
+.bg-dim {
+  background-color: #181818 !important;
+}
+
+.bg-main {
+  background-color: #1e1e1e;
+}
+
+.text-smaller {
+  font-size: .75rem;
+}
+
+#tblGames .hide {
+  display: none !important;
+  height: 0 !important;
+  border: 0 !important;
+}
+
+#filterCont button.active {
+  color: #efefef !important;
+  opacity: 1 !important;
+  font-weight: 700 !important;
+}
