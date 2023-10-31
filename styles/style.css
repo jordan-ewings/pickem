@@ -1,12 +1,16 @@
-body {
-  font-family: -apple-system, 'Helvetica Neue', sans-serif;
-  font-size: 12pt;
-  color: #efefef;
-  background-color: #1e1e1e;
+body,
+td {
+  font-size: 12pt !important;
+  color: #efefef !important;
+  background-color: #1e1e1e !important;
 }
 
 .text-dim {
   color: #9b9b9b !important;
+}
+
+.text-smaller {
+  font-size: .75rem !important;
 }
 
 .bg-dim {
@@ -15,8 +19,4 @@ body {
 
 .bg-main {
   background-color: #1e1e1e !important;
-}
-
-.text-smaller {
-  font-size: .75rem;
 }

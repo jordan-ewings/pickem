@@ -1,3 +1,28 @@
+
+function calcDiff(d1, d2) {
+  var rem = Math.abs(d1 - d2) / (1000 * 60);
+
+  var remD = Math.floor(rem / (60 * 24));
+  var rem2 = rem - remD * 60 * 24;
+  var remH = Math.floor(rem2 / (60));
+  var rem3 = rem2 - remH * 60;
+  var remM = Math.floor(rem3);
+  var labD = remD.toString() + 'D';
+  var labH = remH.toString() + 'H';
+  var labM = remM.toString() + 'M';
+  if (labD != '0D') {
+    var out = labD + ' ' + labH + ' ' + labM;
+  } else {
+    if (labH != '0H') {
+      var out = labH + ' ' + labM;
+    } else {
+      var out = labM;
+    }
+  }
+
+  return out;
+}
+
 /* ------------------------------------------------ */
 
 function procSheet(raw) {

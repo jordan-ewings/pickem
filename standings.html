@@ -8,28 +8,15 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jordan-ewings/pickem@main/styles/style.css">
   <style>
-    td {
-      font-family: -apple-system, 'Helvetica Neue', sans-serif;
-      font-size: 11pt;
-      color: #efefef !important;
-      background-color: #1e1e1e !important;
-      padding-top: 6px !important;
-      padding-bottom: 6px !important;
-    }
 
-    td.text-dim {
-      color: #9b9b9b !important;
-    }
   </style>
 </head>
 
-<body style="margin:0;">
+<body class="m-0">
   <div class="container mx-auto px-0" style="max-width: 600px;">
     <div class="table-responsive">
       <table id="mytable" class="table table-sm table-borderless align-middle m-0">
-        <tbody>
 
-        </tbody>
       </table>
     </div>
   </div>
@@ -49,12 +36,10 @@
 
     function buildRows(proc) {
 
-      const tbody = document.getElementById('mytable').querySelector('tbody');
+      let body = new El('tbody');
 
-      let rows = '';
-
-      let hf = 'text-center text-dim opacity-50 text-smaller fw-semibold px-0';
-      let header = new El('tr').addClass('pb-2');
+      let hf = 'pt-0 pb-1 align-middle text-center text-dim opacity-50 text-smaller fw-medium px-0';
+      let header = new El('tr');
       header.addChild(new El('td').addClass(hf).addChild(''));
       header.addChild(new El('td').addClass(hf).addChild(''));
       header.addChild(new El('td').addClass(hf).addChild('WK'));
@@ -62,31 +47,32 @@
       header.addChild(new El('td').addClass(hf).addChild('GB'));
       header.addChild(new El('td').addClass(hf).addChild('DOG'));
       header.addChild(new El('td').addClass(hf).addChild('DOG W'));
-      rows += header.html();
+      body.addChild(header);
 
       proc.forEach((g) => {
         if (g.gb == '') g.gb = '-';
 
-        let row = new El('tr').addClass('pb-2');
-        row.addChild(new El('td').addClass('text-nowrap text-end text-primary-emphasis text-smaller fw-medium')
+        let rf = 'pt-2 text-nowrap align-middle';
+        let row = new El('tr');
+        row.addChild(new El('td').addClass(rf).addClass('text-nowrap text-end text-primary-emphasis text-smaller fw-medium')
           .addChild(g.rank));
-        row.addChild(new El('td').addClass('text-nowrap fw-medium pe-4')
+        row.addChild(new El('td').addClass(rf).addClass('text-nowrap fw-medium pe-4')
           .addChild(g.player));
-        row.addChild(new El('td').addClass('text-nowrap text-center')
+        row.addChild(new El('td').addClass(rf).addClass('text-nowrap text-center')
           .addChild(g.rec_week));
-        row.addChild(new El('td').addClass('text-nowrap text-center')
+        row.addChild(new El('td').addClass(rf).addClass('text-nowrap text-center')
           .addChild(g.rec));
-        row.addChild(new El('td').addClass('text-nowrap text-center text-dim')
+        row.addChild(new El('td').addClass(rf).addClass('text-nowrap text-center text-dim')
           .addChild(g.gb));
-        row.addChild(new El('td').addClass('text-nowrap text-center text-dim')
+        row.addChild(new El('td').addClass(rf).addClass('text-nowrap text-center text-dim')
           .addChild(g.pc_dog_pick));
-        row.addChild(new El('td').addClass('text-nowrap text-center text-dim')
+        row.addChild(new El('td').addClass(rf).addClass('text-nowrap text-center text-dim')
           .addChild(g.pc_dog_win));
 
-        rows += row.html();
+        body.addChild(row);
       });
 
-      document.getElementById('mytable').querySelector('tbody').innerHTML = rows;
+      document.getElementById('mytable').innerHTML = body.html();
     }
 
     /* ------------------------------------------------ */

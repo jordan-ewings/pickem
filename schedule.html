@@ -4,6 +4,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- <link href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.2/dist/cerulean/bootstrap.min.css" rel="stylesheet"> -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jordan-ewings/pickem@main/styles/style.css">
@@ -61,7 +62,7 @@
 
   <script>
 
-    sendData(refresh = true);
+    // sendData(refresh = true);
 
     /* ------------------------------------------------ */
 
@@ -144,6 +145,7 @@
             return new El('div').addClass('d-flex align-items-center')
               .addChild(game[team].logo.addClass('object-fit-contain').addStyle('height:1.2rem;width:1.2rem;'))
               .addChild(game[team].name.addClass('ps-2 fw-semibold'))
+              .addChild(game[team].poss.addClass('object-fit-contain ps-3').addStyle('height:.7rem;width:.7rem;'))
               .addChild(game[team].score.addClass('ms-auto'))
           })
           )
@@ -244,6 +246,13 @@
         let ename = new El('span').addChild(name)
         if (state == 'post' && !f_win) ename.addClass('opacity-25');
 
+        let eposs = new El('i');
+        if (g[t + '_poss']) {
+          if (g[t + '_poss'] == '1') {
+            eposs.addClass("fa-solid fa-football").addStyle("color: #79552e;");
+          }
+        }
+
         let escore = new El('span');
         if (state == 'pre') {
           escore.addChild(record).addClass('text-dim text-smaller');
@@ -254,7 +263,7 @@
           }
         }
 
-        info[t] = { logo: elogo, name: ename, score: escore }
+        info[t] = { logo: elogo, name: ename, poss: eposs, score: escore }
       });
 
       let eodds = new El('span').addChild(odds);
@@ -461,6 +470,10 @@
 
       const proc = events.map((game) => {
 
+        let comp = game.competitions[0];
+        let hid = comp.competitors[0].id;
+        let aid = comp.competitors[1].id;
+
         let data = {};
         data.espn_id = game.id;
         data.week = game.week.number;
@@ -468,6 +481,17 @@
         data.away_score = game.competitions[0].competitors[1].score;
         data.state = game.status.type.state;
         data.stateshort = game.status.type.shortDetail;
+        data.home_poss = '0';
+        data.away_poss = '0';
+
+        if (comp.situation) {
+          if (comp.situation.possession) {
+            let pid = comp.situation.possession;
+            if (pid == hid) data.home_poss = '1';
+            if (pid == aid) data.away_poss = '1';
+          }
+        }
+
         return data;
       });
 
@@ -491,6 +515,8 @@
             g.home_score = glive.home_score;
             g.state = glive.state;
             g.stateshort = glive.stateshort;
+            g.away_poss = glive.away_poss;
+            g.home_poss = glive.home_poss;
             let ascore = parseInt(glive.away_score);
             let hscore = parseInt(glive.home_score);
 
