@@ -50,6 +50,7 @@
 
     async function sendData() {
       const data = await getSheet('Standings');
+      console.log(data);
       buildRows(data);
     }
 
@@ -72,13 +73,28 @@
 
       proc.forEach((g) => {
         if (g.gb == '') g.gb = '-';
+        let eplayer = new El('div').addClass('d-flex flex-row align-items-center p-0');
+        let ename = new El('span').addClass('pe-2').addChild(g.player);
+        let eicon = new El('i');
+        let eval = new El('span').addClass('text-smaller ps-1').addChild(g.change.replace('-', ''));
+        if (parseInt(g.change) > 0) {
+          eicon.addClass('fa-regular fa-circle-up fa-sm text-success-emphasis');
+          eval.addClass('text-success-emphasis');
+        } else if (parseInt(g.change) < 0) {
+          eicon.addClass('fa-regular fa-circle-down fa-sm text-danger-emphasis');
+          eval.addClass('text-danger-emphasis');
+        } else {
+          eval.addClass('opacity-0');
+        }
+
+        eplayer.addChild(ename).addChild(eicon).addChild(eval);
 
         let rf = 'pt-2 text-nowrap align-middle';
         let row = new El('tr');
-        row.addChild(new El('td').addClass(rf).addClass('text-nowrap text-end text-primary-emphasis text-smaller fw-medium')
+        row.addChild(new El('td').addClass(rf).addClass('text-nowrap ps-0 text-end text-primary-emphasis text-smaller fw-medium')
           .addChild(g.rank));
-        row.addChild(new El('td').addClass(rf).addClass('text-nowrap fw-medium pe-4')
-          .addChild(g.player));
+        row.addChild(new El('td').addClass(rf).addClass('text-nowrap fw-medium pe-3')
+          .addChild(eplayer));
         row.addChild(new El('td').addClass(rf).addClass('text-nowrap text-center')
           .addChild(g.rec_week));
         row.addChild(new El('td').addClass(rf).addClass('text-nowrap text-center')
