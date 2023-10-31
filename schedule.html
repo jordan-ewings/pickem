@@ -61,14 +61,7 @@
 
   <script>
 
-    sendData(refresh = false);
-
-    function toDOM(el) {
-      let p = document.createElement('div');
-      p.innerHTML = el.html();
-      let elem = p.firstChild;
-      return elem;
-    }
+    sendData(refresh = true);
 
     /* ------------------------------------------------ */
 
@@ -90,7 +83,6 @@
         setLoadingBar(100, 'Fetching scores...');
       }
 
-      // setLoadingBar(100, 'Done');
       console.log(proc);
       setTimeout(function () {
         buildRows(proc);
@@ -99,7 +91,43 @@
         document.getElementById("toggle-picks-btn").classList.remove('d-none');
         document.getElementById("progGames").classList.remove('d-none');
       }, 100);
+
+      setTimeout(function () {
+        const tblrows = document.querySelectorAll('.tblrow');
+        for (let i = 0; i < tblrows.length; i++) {
+          var row = tblrows.item(i);
+          row.onclick = function () {
+            if (this.querySelector(".pickrow") != null) {
+              let picks = this.querySelector(".pickrow");
+              let is_shown = picks.classList.contains("hide") == false;
+              if (!is_shown) this.querySelector(".pickrow").classList.remove("hide");
+              if (is_shown) this.querySelector(".pickrow").classList.add("hide");
+            }
+          };
+        };
+      }, 1000);
     }
+
+    function sendOnClick() {
+      const tblrows = document.querySelectorAll('.tblrow');
+      for (let i = 0; i < tblrows.length; i++) {
+        var row = tblrows.item(i);
+        row.setAttribute("onclick", 'if (this.querySelector(".pickrow") != null) this.querySelector(".pickrow").classList.remove("hide")');
+      };
+    }
+
+    function sendOnClick() {
+      const tblrows = document.querySelectorAll('.tblrow');
+      for (let i = 0; i < tblrows.length; i++) {
+        var row = tblrows.item(i);
+        row.onclick = function () {
+          if (this.querySelector(".pickrow") != null) {
+            this.querySelector(".pickrow").classList.remove("hide");
+          }
+        };
+      };
+    }
+
 
     /* ------------------------------------------------ */
 
@@ -348,30 +376,20 @@
     function togglePicks() {
 
       let btn = document.getElementById('toggle-picks-btn');
-      let picks_on = btn.innerHTML.includes('Hide');
-      if (picks_on) btn.innerHTML = 'Show Picks';
-      if (!picks_on) btn.innerHTML = 'Hide Picks';
+      let picks_on = btn.innerHTML.includes('Hide') == true;
+      if (picks_on == true) btn.innerHTML = 'Show Picks';
+      if (picks_on == false) btn.innerHTML = 'Hide Picks';
 
       let tbl = document.getElementById('tblGames');
       let rows = tbl.getElementsByClassName('pickrow');
       for (let i = 0; i < rows.length; i++) {
         let row = rows.item(i);
         let is_shown = row.classList.contains('hide') == false;
-
-        if (!is_shown) row.classList.remove('hide');
-        if (is_shown) row.classList.add('hide');
-      }
-    }
-
-    /* ------------------------------------------------ */
-
-    function togglePickRow(event) {
-
-      let picks = event.target.querySelector('.pickrow');
-      if (!(picks == null)) {
-        let is_shown = picks.classList.contains('hide') == false;
-        if (!is_shown) picks.classList.remove('hide');
-        if (is_shown) picks.classList.add('hide');
+        if (!picks_on) {
+          if (!is_shown) row.classList.remove('hide');
+        } else {
+          if (is_shown) row.classList.add('hide');
+        }
       }
     }
 
