@@ -5,6 +5,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <style>
     body {
       font-size: 11pt !important;
@@ -18,6 +19,10 @@
 
     .text-smaller {
       font-size: .75rem !important;
+    }
+
+    .text-tiny {
+      font-size: .7rem !important;
     }
 
     .bg-dim {
@@ -34,9 +39,12 @@
 
   <div class="d-flex flex-column justify-content-center align-items-center">
     <div id="fname" class="fs-2 fw-bold"></div>
-    <div id="fexp" class="text-dim fs-6 fw-normal"></div>
+    <div id="fexp" class="text-dim fs-6"></div>
   </div>
 
+  <div class="container d-none">
+    <pre id="data-store" class="">NO DATA</pre>
+  </div>
   <script>
     var formType = "WEEKEND"
     sendData();
@@ -44,16 +52,20 @@
     async function sendData() {
       const data = await getSheet('Info');
       const info = getCurrentForms(data)[formType];
-      let now = new Date().valueOf();
-      let start = new Date(info.start).valueOf();
-      start = start + (1000 * 60 * 5);
-      let rem = calcDiff(start, now);
-      if (now - start > 0) rem = info.status;
+      document.getElementById("data-store").textContent = JSON.stringify(info, undefined, 2);
 
-      document.getElementById("fname").innerHTML = info.title;
-      document.getElementById("fexp").innerHTML = rem;
+      sendDataStore();
+      setInterval(sendDataStore, 1000);
     }
 
+    function sendDataStore() {
+      const infoRaw = document.getElementById('data-store').textContent;
+      const info = JSON.parse(infoRaw);
+
+      let rem = calcDiff(info);
+      document.getElementById("fname").innerHTML = info.Form;
+      document.getElementById("fexp").innerHTML = rem;
+    }
 
     function getCurrentForms(data) {
       let forms = data;
@@ -61,43 +73,84 @@
       let tnf = forms.filter((x) => x['Form'].includes('TNF') == true)[0];
       let wknd = forms.filter((x) => x['Form'].includes('TNF') == false)[0];
       return {
-        TNF: {
-          title: tnf['Form'],
-          status: tnf['Status'],
-          start: tnf['DL']
-        },
-        WEEKEND: {
-          title: wknd['Form'],
-          status: wknd['Status'],
-          start: wknd['DL']
-        }
+        TNF: tnf,
+        WEEKEND: wknd
       };
     }
 
-    function calcDiff(d1, d2) {
+    function calcDiff(info) {
 
-      let rem = Math.abs(d1 - d2) / (1000 * 60);
-
-      let remD = Math.floor(rem / (60 * 24));
-      let rem2 = rem - remD * 60 * 24;
-      let remH = Math.floor(rem2 / (60));
-      let rem3 = rem2 - remH * 60;
-      let remM = Math.floor(rem3);
-      let labD = remD.toString() + 'D';
-      let labH = remH.toString() + 'H';
-      let labM = remM.toString() + 'M';
-      let out;
-      if (labD != '0D') {
-        out = labD + ' ' + labH + ' ' + labM;
-      } else {
-        if (labH != '0H') {
-          out = labH + ' ' + labM;
-        } else {
-          out = labM;
-        }
+      let now = new Date().valueOf();
+      let start = new Date(info.DL).valueOf() + (1000 * 60 * 5);
+      if (now - start > 0) {
+        if (info.PRE <= 1) return 'Expired';
+        if (info.Status.includes('game')) return info.Status;
+        return 'Games Started'
       }
 
-      return out;
+      let rem = Math.abs(start - now) / (1000);
+
+      let remD = Math.floor(rem / (60 * 60 * 24));
+      let rem2 = rem - remD * 60 * 60 * 24;
+      let remH = Math.floor(rem2 / (60 * 60));
+      let rem3 = rem2 - remH * 60 * 60;
+      let remM = Math.floor(rem3 / 60);
+      let rem4 = rem3 - remM * 60;
+      let remS = Math.floor(rem4);
+      // remD = 0;
+      // remH = 0;
+      // remM = 0;
+      // remS = 0;
+
+      let vshow = {};
+      let eColor = '';
+      if (remD != 0) {
+        vshow.M = 'd-none';
+        vshow.S = 'd-none';
+        eColor += 'text-dim';
+      } else if (remH != 0) {
+        vshow.D = 'd-none';
+        vshow.S = 'd-none';
+        eColor += 'text-primary-emphasis';
+      } else if (remM != 0) {
+        vshow.D = 'd-none';
+        vshow.H = 'd-none';
+        eColor += 'text-danger-emphasis';
+      } else if (remS != 0) {
+        vshow.D = 'd-none';
+        vshow.H = 'd-none';
+        vshow.M = 'd-none';
+        eColor += 'text-danger';
+      }
+
+      let durClass = 'text-smaller opacity-75 fw-light';
+      let elab = new El('div').addClass('d-flex flex-row column-gap-1 align-items-center');
+
+      // let eclock = new El('i').addClass('fa-regular fa-clock fa-sm').addClass(eColor);
+      // let eSuff = new El('span').addClass(clockColor).addChild('KO:');
+      let eD = new El('div').addClass(vshow.D).addClass(eColor)
+        .addChild(new El('span').addClass('pe-1').addChild(remD.toString()))
+        .addChild(new El('span').addClass(durClass).addChild((remD.toString() == 1) ? 'DAY' : 'DAYS'));
+      let eH = new El('div').addClass(vshow.H).addClass(eColor)
+        .addChild(new El('span').addClass('pe-1').addChild(remH.toString()))
+        .addChild(new El('span').addClass(durClass).addChild((remD.toString() == 1) ? 'HOUR' : 'HOURS'));
+      let eM = new El('div').addClass(vshow.M).addClass(eColor)
+        .addChild(new El('span').addClass('pe-1').addChild(remM.toString()))
+        .addChild(new El('span').addClass(durClass).addChild('MIN'));
+      let eS = new El('div').addClass(vshow.S).addClass(eColor)
+        .addChild(new El('span').addClass('pe-1').addChild(remS.toString()))
+        .addChild(new El('span').addClass(durClass).addChild('SEC'));
+
+
+      elab
+        // .addChild(eclock)
+        // .addChild(eSuff)
+        .addChild(eD)
+        .addChild(eH)
+        .addChild(eM)
+        .addChild(eS);
+
+      return elab.html();
     }
 
     /* ------------------------------------------------ */

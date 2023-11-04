@@ -29,6 +29,13 @@
     .bg-main {
       background-color: #1e1e1e !important;
     }
+
+    i {
+      animation-iteration-count: 1 !important;
+      animation-delay: 500ms !important;
+      -webkit-animation-iteration-count: 1 !important;
+      -webkit-animation-delay: 500ms !important;
+    }
   </style>
 </head>
 
@@ -78,10 +85,10 @@
         let eicon = new El('i');
         let eval = new El('span').addClass('text-smaller ps-1').addChild(g.change.replace('-', ''));
         if (parseInt(g.change) > 0) {
-          eicon.addClass('fa-regular fa-circle-up fa-sm text-success-emphasis');
+          eicon.addClass('fa-regular fa-circle-up fa-sm text-success-emphasis fa-bounce');
           eval.addClass('text-success-emphasis');
         } else if (parseInt(g.change) < 0) {
-          eicon.addClass('fa-regular fa-circle-down fa-sm text-danger-emphasis');
+          eicon.addClass('fa-regular fa-circle-down fa-sm text-danger-emphasis fa-bounce');
           eval.addClass('text-danger-emphasis');
         } else {
           eval.addClass('opacity-0');
