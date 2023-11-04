@@ -4,6 +4,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
   <style>
@@ -80,9 +82,12 @@
     </div>
   </div>
 
+  <div class="container text-smaller d-none">
+    <pre id="data" class=""></pre>
+  </div>
   <script>
 
-    sendData(refresh = false);
+    // sendData(refresh = false);
 
     /* ------------------------------------------------ */
 
@@ -90,23 +95,25 @@
       setLoadingBar(0);
       setLoadingBar(33, 'Fetching games...');
       const currweek = await getCurrentWeek();
-      const data = await getSheet('dbGames');
+      const games = await getSheet('dbGames');
 
       setLoadingBar(66, 'Fetching picks...');
       const picks = await getSheet('dbFull');
 
-      let proc = procData(data, picks);
+      let data = procData(games, picks);
       if (refresh == true) {
         setLoadingBar(100, 'Fetching live scores...');
         const livedata = await fetchLive(currweek);
-        proc = updateData(proc, livedata);
+        data = updateData(data, livedata);
       } else {
         setLoadingBar(100, 'Fetching scores...');
       }
 
-      console.log(proc);
+      document.getElementById("data").textContent = JSON.stringify(data, undefined, 2);
+      // hljs.highlightElement(document.getElementById("data"));
+      // console.log(proc);
       setTimeout(function () {
-        buildRows(proc);
+        buildRows();
         filterTable(currweek);
         document.getElementById('view-loading').classList.add('d-none');
         document.getElementById("toggle-picks-btn").classList.remove('d-none');
@@ -204,7 +211,9 @@
 
     /* ------------------------------------------------ */
 
-    function buildRows(proc) {
+    function buildRows() {
+
+      const proc = JSON.parse(document.getElementById('data').textContent);
 
       let rowdata = proc.map((w) => {
         let rows = new El('div').addClass('week-games').addId('week-games-' + w.week);

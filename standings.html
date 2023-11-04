@@ -48,22 +48,27 @@
     </div>
   </div>
 
+  <div class="container d-none">
+    <pre id="data" class="">NO DATA</pre>
+  </div>
   <script>
 
     sendData();
-
 
     /* ------------------------------------------------ */
 
     async function sendData() {
       const data = await getSheet('Standings');
-      console.log(data);
-      buildRows(data);
+      document.getElementById("data").textContent = JSON.stringify(data, undefined, 2);
+
+      buildRows();
     }
 
     /* ------------------------------------------------ */
 
-    function buildRows(proc) {
+    function buildRows() {
+
+      const proc = JSON.parse(document.getElementById('data').textContent);
 
       let body = new El('tbody');
 

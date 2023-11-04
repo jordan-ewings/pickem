@@ -54,6 +54,12 @@ class El {
     this.inner = '';
     this.id = '';
     this.onclick = '';
+    this.data = {};
+  }
+
+  addData(k, v) {
+    this.data[k] = v;
+    return this;
   }
 
   addId(i) {
@@ -75,11 +81,6 @@ class El {
 
   addSrc(s) {
     this.src = s;
-    return this;
-  }
-
-  addOnClick(i) {
-    this.onclick = i;
     return this;
   }
 
@@ -110,16 +111,14 @@ class El {
     if (this.styles != '') v += ` style="${this.styles}"`;
     if (this.onclick != '') v += ` onclick="${this.onclick}"`;
     if (this.src != '') v += ` src="${this.src}"`;
+    for (k in this.data) {
+      v += ` data-${k}="${this.data[k]}"`;
+    }
+
     v += `>`;
     if (this.inner != '') v += `${this.inner}`;
     v += `</${this.tag}>`;
     return v;
   }
 
-  toDOM() {
-    let p = document.createElement('div');
-    p.innerHTML = this.html();
-    let elem = p.firstChild;
-    return elem;
-  }
 }

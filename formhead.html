@@ -4,8 +4,11 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
   <style>
     body {
       font-size: 11pt !important;
@@ -43,39 +46,32 @@
   </div>
 
   <div class="container d-none">
-    <pre id="data-store" class="">NO DATA</pre>
+    <pre id="data" class="rounded-2 p-1">NO DATA</pre>
   </div>
   <script>
+
     var formType = "WEEKEND"
     sendData();
 
     async function sendData() {
       const data = await getSheet('Info');
-      const info = getCurrentForms(data)[formType];
-      document.getElementById("data-store").textContent = JSON.stringify(info, undefined, 2);
+      document.getElementById("data").textContent = JSON.stringify(data, undefined, 2);
+      hljs.highlightElement(document.getElementById("data"))
 
       sendDataStore();
       setInterval(sendDataStore, 1000);
     }
 
     function sendDataStore() {
-      const infoRaw = document.getElementById('data-store').textContent;
-      const info = JSON.parse(infoRaw);
+      let data = JSON.parse(document.getElementById('data').textContent);
+      let is_tnf = true;
+      if (formType != 'TNF') is_tnf = false;
 
+      data.reverse();
+      let info = data.filter((x) => x['Form'].includes('TNF') == is_tnf)[0];
       let rem = calcDiff(info);
       document.getElementById("fname").innerHTML = info.Form;
       document.getElementById("fexp").innerHTML = rem;
-    }
-
-    function getCurrentForms(data) {
-      let forms = data;
-      forms.reverse();
-      let tnf = forms.filter((x) => x['Form'].includes('TNF') == true)[0];
-      let wknd = forms.filter((x) => x['Form'].includes('TNF') == false)[0];
-      return {
-        TNF: tnf,
-        WEEKEND: wknd
-      };
     }
 
     function calcDiff(info) {
@@ -97,10 +93,6 @@
       let remM = Math.floor(rem3 / 60);
       let rem4 = rem3 - remM * 60;
       let remS = Math.floor(rem4);
-      // remD = 0;
-      // remH = 0;
-      // remM = 0;
-      // remS = 0;
 
       let vshow = {};
       let eColor = '';
@@ -108,15 +100,15 @@
         vshow.M = 'd-none';
         vshow.S = 'd-none';
         eColor += 'text-dim';
-      } else if (remH != 0) {
+      } else if (remD == 0 && remH != 0) {
         vshow.D = 'd-none';
         vshow.S = 'd-none';
         eColor += 'text-primary-emphasis';
-      } else if (remM != 0) {
+      } else if (remD == 0 && remH == 0 && remM != 0) {
         vshow.D = 'd-none';
         vshow.H = 'd-none';
         eColor += 'text-danger-emphasis';
-      } else if (remS != 0) {
+      } else if (remD == 0 && remH == 0 && remM == 0 && remS != 0) {
         vshow.D = 'd-none';
         vshow.H = 'd-none';
         vshow.M = 'd-none';
@@ -126,14 +118,12 @@
       let durClass = 'text-smaller opacity-75 fw-light';
       let elab = new El('div').addClass('d-flex flex-row column-gap-1 align-items-center');
 
-      // let eclock = new El('i').addClass('fa-regular fa-clock fa-sm').addClass(eColor);
-      // let eSuff = new El('span').addClass(clockColor).addChild('KO:');
       let eD = new El('div').addClass(vshow.D).addClass(eColor)
         .addChild(new El('span').addClass('pe-1').addChild(remD.toString()))
         .addChild(new El('span').addClass(durClass).addChild((remD.toString() == 1) ? 'DAY' : 'DAYS'));
       let eH = new El('div').addClass(vshow.H).addClass(eColor)
         .addChild(new El('span').addClass('pe-1').addChild(remH.toString()))
-        .addChild(new El('span').addClass(durClass).addChild((remD.toString() == 1) ? 'HOUR' : 'HOURS'));
+        .addChild(new El('span').addClass(durClass).addChild((remH.toString() == 1) ? 'HOUR' : 'HOURS'));
       let eM = new El('div').addClass(vshow.M).addClass(eColor)
         .addChild(new El('span').addClass('pe-1').addChild(remM.toString()))
         .addChild(new El('span').addClass(durClass).addChild('MIN'));
@@ -143,8 +133,6 @@
 
 
       elab
-        // .addChild(eclock)
-        // .addChild(eSuff)
         .addChild(eD)
         .addChild(eH)
         .addChild(eM)
