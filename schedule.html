@@ -59,7 +59,7 @@
               <div class="progress-bar bg-primary"></div>
             </div>
             <div id="progIn" class="progress" role="progressbar" style="width: 0%">
-              <div class="progress-bar bg-danger progress-bar-striped progress-bar-animated"></div>
+              <div class="progress-bar bg-danger"></div>
             </div>
             <div id="progPre" class="progress" role="progressbar" style="width: 0%">
               <div class="progress-bar bg-dim"></div>
@@ -87,7 +87,7 @@
   </div>
   <script>
 
-    // sendData(refresh = false);
+    sendData(refresh = false);
 
     /* ------------------------------------------------ */
 
@@ -110,15 +110,12 @@
       }
 
       document.getElementById("data").textContent = JSON.stringify(data, undefined, 2);
-      // hljs.highlightElement(document.getElementById("data"));
-      // console.log(proc);
-      setTimeout(function () {
-        buildRows();
-        filterTable(currweek);
-        document.getElementById('view-loading').classList.add('d-none');
-        document.getElementById("toggle-picks-btn").classList.remove('d-none');
-        document.getElementById("progGames").classList.remove('d-none');
-      }, 100);
+
+      buildRows();
+      filterTable(currweek);
+      document.getElementById('view-loading').classList.add('d-none');
+      document.getElementById("toggle-picks-btn").classList.remove('d-none');
+      document.getElementById("progGames").classList.remove('d-none');
 
       setTimeout(function () {
         const tblrows = document.querySelectorAll('.tblrow');
@@ -172,7 +169,7 @@
             return new El('div').addClass('d-flex align-items-center')
               .addChild(game[team].logo.addClass('object-fit-contain').addStyle('height:1.2rem;width:1.2rem;'))
               .addChild(game[team].name.addClass('ps-2 fw-semibold'))
-              .addChild(game[team].poss.addClass('object-fit-contain ps-3').addStyle('height:.7rem;width:.7rem;'))
+              .addChild(game[team].poss.addClass('object-fit-contain ps-2'))
               .addChild(game[team].score.addClass('ms-auto'))
           })
           )
@@ -206,7 +203,7 @@
         tblrow.addChild(gamerow);
       }
 
-      tblrow.addData('espn-id', g.espn_id);
+      // tblrow.addData('espn-id', g.espn_id);
 
       return tblrow;
     }
@@ -279,7 +276,7 @@
         let eposs = new El('i');
         if (g[t + '_poss']) {
           if (g[t + '_poss'] == '1') {
-            eposs.addClass("fa-solid fa-football").addStyle("color: #79552e;");
+            eposs.addClass("fa-solid fa-football fa-sm").addStyle("color: #79552e;");
           }
         }
 
