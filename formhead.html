@@ -48,10 +48,47 @@
   <div class="container d-none">
     <pre id="data" class="rounded-2 p-1">NO DATA</pre>
   </div>
+  <!-- <script>
+    async function getFormHTML() {
+      let myHeaders = new Headers();
+      myHeaders.append("Content-Type", "application/json");
+
+      let form = 'Week 10';
+      let player = 'Jordan';
+      let game = 'MIA & KC';
+      let pick = 'Miami Dolphins';
+
+      let r = {};
+      r.form = form;
+      r.sub = [];
+      r.sub.push({
+        question: 'Select your name',
+        answer: player
+      });
+      r.sub.push({
+        question: game,
+        answer: pick
+      });
+
+      let raw = JSON.stringify(r);
+      let requestOptions = {
+        method: 'POST',
+        headers: myHeaders,
+        body: raw,
+        redirect: 'follow'
+      };
+
+      fetch("https://script.google.com/macros/s/AKfycby4aE_MdYFa1RUH3DMLpltpFrrzKegHUp42TPQ00bEP2S9IUgF-HbdZ1SABAZOpIFAYjw/exec", requestOptions)
+        .then(response => response.text())
+        .then(result => console.log(result))
+        .catch(error => console.log('error', error));
+    }
+
+  </script> -->
   <script>
 
     var formType = "WEEKEND"
-    sendData();
+    // sendData();
 
     async function sendData() {
       const data = await getSheet('Info');
@@ -79,7 +116,7 @@
       let now = new Date().valueOf();
       let start = new Date(info.DL).valueOf() + (1000 * 60 * 5);
       if (now - start > 0) {
-        if (info.PRE <= 1) return 'Expired';
+        if (info.PRE < 1) return 'Expired';
         if (info.Status.includes('game')) return info.Status;
         return 'Games Started'
       }

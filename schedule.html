@@ -82,12 +82,59 @@
     </div>
   </div>
 
+
   <div class="container text-smaller d-none">
     <pre id="data" class=""></pre>
   </div>
   <script>
+    showFormModal();
+    function showFormModal() {
+      let form = document.getElementById('form-modal').querySelector('form');
+      form.querySelector('#formname').value = 'Week 9 TNF';
+      form.querySelector('#formquestion').value = 'MIA @ KC';
+      form.querySelector('#formplayer').value = 'Jordan';
+      form.querySelector('#formchoice1-label').innerHTML = 'Miami Dolphins';
+      form.querySelector('#formchoice1-label').innerHTML = 'Kansas City Chiefs';
 
-    sendData(refresh = false);
+    }
+
+    // async function getFormHTML() {
+    //   let myHeaders = new Headers();
+    //   myHeaders.append("Content-Type", "application/json");
+
+    //   let form = 'Week 10';
+    //   let player = 'Jordan';
+    //   let game = 'MIA & KC';
+    //   let pick = 'Miami Dolphins';
+
+    //   let r = {};
+    //   r.form = form;
+    //   r.sub = [];
+    //   r.sub.push({
+    //     question: 'Select your name',
+    //     answer: player
+    //   });
+    //   r.sub.push({
+    //     question: game,
+    //     answer: pick
+    //   });
+
+    //   let raw = JSON.stringify(r);
+    //   let requestOptions = {
+    //     method: 'POST',
+    //     headers: myHeaders,
+    //     body: raw,
+    //     redirect: 'follow'
+    //   };
+
+    //   fetch("https://script.google.com/macros/s/AKfycby4aE_MdYFa1RUH3DMLpltpFrrzKegHUp42TPQ00bEP2S9IUgF-HbdZ1SABAZOpIFAYjw/exec", requestOptions)
+    //     .then(response => response.text())
+    //     .then(result => console.log(result))
+    //     .catch(error => console.log('error', error));
+    // }
+
+
+    // sendData(refresh = false);
 
     /* ------------------------------------------------ */
 
@@ -120,13 +167,29 @@
       setTimeout(function () {
         const tblrows = document.querySelectorAll('.tblrow');
         for (let i = 0; i < tblrows.length; i++) {
-          var row = tblrows.item(i);
-          row.onclick = function () {
-            if (this.querySelector(".pickrow") != null) {
-              let picks = this.querySelector(".pickrow");
+          var tblrow = tblrows.item(i);
+          var gamerow = tblrow.querySelector('.gamerow');
+          gamerow.onclick = function () {
+            let picks = this.parentElement.querySelector(".pickrow");
+            if (picks != null) {
               let is_shown = picks.classList.contains("hide") == false;
-              if (!is_shown) this.querySelector(".pickrow").classList.remove("hide");
-              if (is_shown) this.querySelector(".pickrow").classList.add("hide");
+              if (!is_shown) picks.classList.remove("hide");
+              if (is_shown) picks.classList.add("hide");
+
+              // let formname = tblrow.dataset.formname;
+              // let formquestion = tblrow.dataset.formquestion;
+              // let formchoice1 = tblrow.dataset.formchoice1;
+              // let formchoice2 = tblrow.dataset.formchoice2;
+              // let pickitems = picks.querySelectorAll('.pickitem');
+              // for (let j = 0; j < pickitems.length; j++) {
+              //   let pickitem = pickitems.item(j);
+              //   pickitem.onclick = function () {
+              //     let formplayer = pickitem.textContent;
+
+              //   }
+              // }
+
+
             }
           };
         };
@@ -189,7 +252,7 @@
           .addChild(new El('div').addClass('row row-cols-3 rounded-end-3 bg-dim mx-0 ps-2 pe-1 py-1').addStyle('border-left: 4px solid #0e0e0e')
             .addChildren(picks.map((pick) => {
               return new El('div').addClass('col px-1')
-                .addChild(new El('div').addClass('d-flex align-items-center py-1')
+                .addChild(new El('div').addClass('pickitem d-flex align-items-center py-1')
                   .addChild(pick.logo.addClass('object-fit-contain').addStyle('height:16px;width:16px;'))
                   .addChild(pick.name.addClass('ps-1 small'))
                 )
@@ -203,9 +266,22 @@
         tblrow.addChild(gamerow);
       }
 
+      let gameid = g.game_id;
+      let gameweek = parseInt(gameid.split('_')[1]).toFixed(0);
+      let data_formname = 'Week ' + gameweek;
+      if (g.gameday.split(' ')[0] == 'Thu') data_formname += ' TNF';
+      let data_formquestion = gameid.split('_')[2] + ' @ ' + gameid.split('_')[3];
+      let data_formchoice1 = g.away_teamfull;
+      let data_formchoice2 = g.home_teamfull;
+      let tblrow_html = tblrow.html()
+        .replace('<div', '<div data-gameid="' + gameid + '"')
+        .replace('<div', '<div data-formname="' + data_formname + '"')
+        .replace('<div', '<div data-formquestion="' + data_formquestion + '"')
+        .replace('<div', '<div data-formchoice1="' + data_formchoice1 + '"')
+        .replace('<div', '<div data-formchoice2="' + data_formchoice2 + '"');
       // tblrow.addData('espn-id', g.espn_id);
 
-      return tblrow;
+      return tblrow_html;
     }
 
     /* ------------------------------------------------ */
@@ -442,9 +518,9 @@
         game.gameday_long = new Date(game.gametime).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
         game.gametime = new Date(game.gametime).toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric' });
         let rec = [
-          'espn_id', 'week', 'gameday_long', 'gameday', 'gametime', 'state', 'stateshort',
-          'away_team', 'away_teamshort', 'away_record', 'away_logo', 'away_score', 'away_color',
-          'home_team', 'home_teamshort', 'home_record', 'home_logo', 'home_score', 'home_color',
+          'espn_id', 'game_id', 'week', 'gameday_long', 'gameday', 'gametime', 'state', 'stateshort',
+          'away_team', 'away_teamshort', 'away_teamfull', 'away_record', 'away_logo', 'away_score', 'away_color',
+          'home_team', 'home_teamshort', 'home_teamfull', 'home_record', 'home_logo', 'home_score', 'home_color',
           'spread', 'win_team']
           .reduce((obj2, key) => (obj2[key] = game[key], obj2), {});
 
