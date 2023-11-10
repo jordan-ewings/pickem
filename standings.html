@@ -46,35 +46,6 @@
 
       </table>
     </div>
-
-    <!-- <button type="button" class="mt-2 ms-4 btn btn-sm btn-outline-light opacity-50" data-bs-toggle="modal" data-bs-target="#helpModal">
-      Column definitions
-    </button>
-
-    <div class="modal fade" id="helpModal" tabindex="-1">
-      <div class="modal-dialog">
-        <div class="modal-content">
-
-          <div class="modal-body">
-            <dl class="row">
-              <dt class="col-sm-2">WK</dt>
-              <dd class="col-sm-10">Week record</dd>
-              <dt class="col-sm-2">TTL</dt>
-              <dd class="col-sm-10">Season record</dd>
-              <dt class="col-sm-2">GB</dt>
-              <dd class="col-sm-10">Games (wins) back from leader</dd>
-              <dt class="col-sm-2">DOG</dt>
-              <dd class="col-sm-10">Underdog pick percentage</dd>
-              <dt class="col-sm-2">DOG W</dt>
-              <dd class="col-sm-10">Correct underdog pick percentage</dd>
-            </dl>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
-          </div>
-        </div>
-      </div>
-    </div> -->
   </div>
 
   <div class="container d-none">
@@ -83,6 +54,31 @@
   <script>
 
     sendData();
+
+    async function userLogger() {
+      let newUserId = 'U' + Math.floor(Math.random() * 100000).toString();
+      if (localStorage.getItem('uid') == null) {
+        localStorage.setItem('uid', newUserId);
+      }
+
+      let userId = localStorage.getItem('uid');
+      // let userId = 'XXXX';
+      let visitStamp = new Date().toUTCString();
+      let url = "https://script.google.com/macros/s/AKfycby4aE_MdYFa1RUH3DMLpltpFrrzKegHUp42TPQ00bEP2S9IUgF-HbdZ1SABAZOpIFAYjw/exec";
+      let params = '?userId=' + userId + '&visitStamp=' + visitStamp;
+      let fullurl = encodeURI(url + params);
+
+
+      let requestOptions = {
+        method: 'POST',
+        redirect: 'follow'
+      };
+
+      await fetch(fullurl, requestOptions)
+        .then(response => response.text())
+        .then(result => console.log(result))
+        .catch(error => console.log('error', error));
+    }
 
     /* ------------------------------------------------ */
 

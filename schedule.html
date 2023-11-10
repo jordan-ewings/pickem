@@ -45,7 +45,7 @@
   </style>
 </head>
 
-<body style="margin-bottom: 160px;">
+<body style="margin-bottom: 160px; margin-top:10px;">
   <div class="container mx-auto px-0" style="max-width: 600px;">
     <div class="mx-1">
       <div id="filterCont" class="btn-group d-flex flex-nowrap overflow-x-scroll" role="group">
@@ -87,54 +87,8 @@
     <pre id="data" class=""></pre>
   </div>
   <script>
-    showFormModal();
-    function showFormModal() {
-      let form = document.getElementById('form-modal').querySelector('form');
-      form.querySelector('#formname').value = 'Week 9 TNF';
-      form.querySelector('#formquestion').value = 'MIA @ KC';
-      form.querySelector('#formplayer').value = 'Jordan';
-      form.querySelector('#formchoice1-label').innerHTML = 'Miami Dolphins';
-      form.querySelector('#formchoice1-label').innerHTML = 'Kansas City Chiefs';
 
-    }
-
-    // async function getFormHTML() {
-    //   let myHeaders = new Headers();
-    //   myHeaders.append("Content-Type", "application/json");
-
-    //   let form = 'Week 10';
-    //   let player = 'Jordan';
-    //   let game = 'MIA & KC';
-    //   let pick = 'Miami Dolphins';
-
-    //   let r = {};
-    //   r.form = form;
-    //   r.sub = [];
-    //   r.sub.push({
-    //     question: 'Select your name',
-    //     answer: player
-    //   });
-    //   r.sub.push({
-    //     question: game,
-    //     answer: pick
-    //   });
-
-    //   let raw = JSON.stringify(r);
-    //   let requestOptions = {
-    //     method: 'POST',
-    //     headers: myHeaders,
-    //     body: raw,
-    //     redirect: 'follow'
-    //   };
-
-    //   fetch("https://script.google.com/macros/s/AKfycby4aE_MdYFa1RUH3DMLpltpFrrzKegHUp42TPQ00bEP2S9IUgF-HbdZ1SABAZOpIFAYjw/exec", requestOptions)
-    //     .then(response => response.text())
-    //     .then(result => console.log(result))
-    //     .catch(error => console.log('error', error));
-    // }
-
-
-    // sendData(refresh = false);
+    sendData(refresh = false);
 
     /* ------------------------------------------------ */
 
@@ -158,64 +112,56 @@
 
       document.getElementById("data").textContent = JSON.stringify(data, undefined, 2);
 
+      makeWeekButtons();
       buildRows();
       filterTable(currweek);
       document.getElementById('view-loading').classList.add('d-none');
       document.getElementById("toggle-picks-btn").classList.remove('d-none');
       document.getElementById("progGames").classList.remove('d-none');
 
-      setTimeout(function () {
-        const tblrows = document.querySelectorAll('.tblrow');
-        for (let i = 0; i < tblrows.length; i++) {
-          var tblrow = tblrows.item(i);
-          var gamerow = tblrow.querySelector('.gamerow');
-          gamerow.onclick = function () {
-            let picks = this.parentElement.querySelector(".pickrow");
-            if (picks != null) {
-              let is_shown = picks.classList.contains("hide") == false;
-              if (!is_shown) picks.classList.remove("hide");
-              if (is_shown) picks.classList.add("hide");
-
-              // let formname = tblrow.dataset.formname;
-              // let formquestion = tblrow.dataset.formquestion;
-              // let formchoice1 = tblrow.dataset.formchoice1;
-              // let formchoice2 = tblrow.dataset.formchoice2;
-              // let pickitems = picks.querySelectorAll('.pickitem');
-              // for (let j = 0; j < pickitems.length; j++) {
-              //   let pickitem = pickitems.item(j);
-              //   pickitem.onclick = function () {
-              //     let formplayer = pickitem.textContent;
-
-              //   }
-              // }
-
-
-            }
-          };
-        };
-      }, 1000);
+      // setTimeout(function () {
+      //   const tblrows = document.querySelectorAll('.tblrow');
+      //   for (let i = 0; i < tblrows.length; i++) {
+      //     var tblrow = tblrows.item(i);
+      //     var gamerow = tblrow.querySelector('.gamerow');
+      //     gamerow.onclick = function () {
+      //       let picks = this.parentElement.querySelector(".pickrow");
+      //       if (picks != null) {
+      //         let is_shown = picks.classList.contains("hide") == false;
+      //         if (!is_shown) picks.classList.remove("hide");
+      //         if (is_shown) picks.classList.add("hide");
+      //       }
+      //     };
+      //   };
+      // }, 1000);
     }
 
-    function sendOnClick() {
-      const tblrows = document.querySelectorAll('.tblrow');
-      for (let i = 0; i < tblrows.length; i++) {
-        var row = tblrows.item(i);
-        row.setAttribute("onclick", 'if (this.querySelector(".pickrow") != null) this.querySelector(".pickrow").classList.remove("hide")');
-      };
-    }
+    /* ------------------------------------------------ */
 
-    function sendOnClick() {
-      const tblrows = document.querySelectorAll('.tblrow');
-      for (let i = 0; i < tblrows.length; i++) {
-        var row = tblrows.item(i);
-        row.onclick = function () {
-          if (this.querySelector(".pickrow") != null) {
-            this.querySelector(".pickrow").classList.remove("hide");
-          }
-        };
-      };
-    }
+    function buildRows() {
 
+      const proc = JSON.parse(document.getElementById('data').textContent);
+
+      let rowdata = proc.map((w) => {
+        let rows = new El('div').addClass('week-games').addId('week-games-' + w.week);
+        let days = w.games.map((x) => x.gameday_long);
+        days = days.filter((c, index) => days.indexOf(c) === index);
+        days.forEach((d) => {
+          rows.addChild(new El('div')
+            .addChild(new El('h6').addClass('text-center fw-semibold pt-3 pb-3 mb-0 mt-0 bg-main').addChild(d))
+          );
+
+          let games = w.games.filter((x) => x.gameday_long == d);
+          games.forEach((g) => rows.addChild(make_tblrow(g)));
+        });
+        return { week: w.week, games: rows.html() };
+      });
+
+      let rowSet = rowdata.map((x) => x['games']);
+      let rows = [].concat(...rowSet).join('');
+      document.getElementById("tblGames").innerHTML = rows;
+
+    }
 
     /* ------------------------------------------------ */
 
@@ -242,13 +188,14 @@
         .addChild(new El('div').addClass('d-flex flex-column justify-content-center text-smaller')
           .addChild(game.stat1.addClass('text-dim fw-semibold'))
           .addChild(game.stat2.addClass('text-dim fw-semibold'))
+          .addChild(game.stat3.addClass('text-dim fw-normal'))
           .addChild(game.odds.addClass('text-dim fw-normal'))
         )
       );
 
-      let pickrow = new El('div').addClass('pickrow hide row align-items-center pt-0 pb-3 mx-0');
+      let pickrow = new El('div').addClass('pickrow row align-items-center pt-0 pb-0 mx-0');
       if (picks.length > 0) {
-        pickrow.addChild(new El('div').addClass('col-9 ps-1 pe-0')
+        pickrow.addChild(new El('div').addClass('col-9 ps-1 pe-0 mb-3')
           .addChild(new El('div').addClass('row row-cols-3 rounded-end-3 bg-dim mx-0 ps-2 pe-1 py-1').addStyle('border-left: 4px solid #0e0e0e')
             .addChildren(picks.map((pick) => {
               return new El('div').addClass('col px-1')
@@ -261,7 +208,16 @@
           )
         );
 
-        tblrow.addChild(gamerow).addChild(pickrow);
+        let pickrow_id = 'picks-' + g.game_id;
+        pickrow_id = pickrow_id.replace('_', '-');
+        let gamerow_alt = new El('a').addStyle('color:inherit;text-decoration:none;')
+          .addChild(gamerow).html().replace('<a', '<a role="button" data-bs-toggle="collapse" data-bs-target="#' + pickrow_id + '"');
+        pickrow.addClass('collapse').addId(pickrow_id);
+
+        tblrow
+          .addChild(gamerow_alt)
+          .addChild(pickrow);
+        // .addChild(new El('div').addClass('row mx-0 px-0').addStyle('height:1rem'));
       } else {
         tblrow.addChild(gamerow);
       }
@@ -279,52 +235,8 @@
         .replace('<div', '<div data-formquestion="' + data_formquestion + '"')
         .replace('<div', '<div data-formchoice1="' + data_formchoice1 + '"')
         .replace('<div', '<div data-formchoice2="' + data_formchoice2 + '"');
-      // tblrow.addData('espn-id', g.espn_id);
 
       return tblrow_html;
-    }
-
-    /* ------------------------------------------------ */
-
-    function buildRows() {
-
-      const proc = JSON.parse(document.getElementById('data').textContent);
-
-      let rowdata = proc.map((w) => {
-        let rows = new El('div').addClass('week-games').addId('week-games-' + w.week);
-        let days = w.games.map((x) => x.gameday_long);
-        days = days.filter((c, index) => days.indexOf(c) === index);
-        days.forEach((d) => {
-          rows.addChild(new El('div')
-            .addChild(new El('h6').addClass('text-center fw-semibold pt-3 pb-3 mb-0 mt-0 bg-main').addChild(d))
-          );
-
-          let games = w.games.filter((x) => x.gameday_long == d);
-          games.forEach((g) => rows.addChild(make_tblrow(g)));
-        });
-        return { week: w.week, games: rows.html() };
-      });
-
-      let weeks = rowdata.map((x) => x.week);
-      let fCont = document.getElementById('filterCont');
-      weeks.forEach((w) => {
-        if (!document.getElementById('btn' + w)) {
-          let btn = document.createElement('button');
-          btn.type = 'button';
-          btn.setAttribute('onclick', `filterTable(${w})`);
-          btn.classList.add('btn', 'text-dim', 'opacity-50', 'fw-medium', 'text-nowrap', 'rounded-2');
-          btn.style.borderColor = 'transparent';
-          btn.innerHTML = `Week ${w}`;
-          btn.id = 'btn' + w;
-          fCont.appendChild(btn);
-        }
-      });
-
-      let rowSet = rowdata.map((x) => x['games']);
-      let rows = [].concat(...rowSet).join('');
-      document.getElementById("tblGames").innerHTML = rows;
-
-      // return data;
     }
 
     /* ------------------------------------------------ */
@@ -336,6 +248,8 @@
       let gtime = g.gametime;
       let odds = g.spread;
       let win_team = g.win_team;
+      let responses = [];
+      if (g.responses) responses = g.responses;
       let info = {};
 
       ['away', 'home'].forEach((t) => {
@@ -346,9 +260,17 @@
         let record = g[t + '_record'];
 
         let elogo = new El('img').addSrc(logo);
-        let ename = new El('span').addChild(name)
-        if (state == 'post' && !f_win) ename.addClass('opacity-25');
-
+        let ename = new El('span');
+        // if (state == 'post' && !f_win) ename.addClass('opacity-25');
+        // if (state != 'in' && responses.length > 0) {
+        //   let picks = responses.filter((x) => x.pick_teamshort == name);
+        //   let epicks = new El('span').addChild(picks.length.toString());
+        //   if (picks.length == 0) ename.addChild(name);
+        //   if (picks.length > 0) ename.addChild(name + epicks.addClass('badge rounded-circle bg-dim text-dim fw-medium ms-2 ').html());
+        // } else {
+        //   ename.addChild(name);
+        // }
+        ename.addChild(name);
         let eposs = new El('i');
         if (g[t + '_poss']) {
           if (g[t + '_poss'] == '1') {
@@ -372,10 +294,14 @@
       let eodds = new El('span').addChild(odds);
       let estat1 = new El('span');
       let estat2 = new El('span');
+      let estat3 = new El('span');
       if (state == 'post') {
-        estat1.addChild(status)
+        estat1.addChild(status);
       } else if (state == 'in') {
-        estat1.addChild(status).addStyle('color:#ff5c5c!important');
+        estat1.addChild(status).addStyle('color:#ff5c5c!important;');
+        if (g.poss_dd) estat2.addChild(g.poss_dd);
+        if (g.poss_loc) estat3.addChild(g.poss_loc);
+        eodds.addClass('d-none');
       } else if (state == 'pre') {
         estat1.addChild(gdate)
         estat2.addChild(gtime)
@@ -383,6 +309,7 @@
 
       info.stat1 = estat1;
       info.stat2 = estat2;
+      info.stat3 = estat3;
       info.odds = eodds;
 
       return info;
@@ -426,6 +353,26 @@
 
     /* ------------------------------------------------ */
 
+    function makeWeekButtons() {
+
+      const proc = JSON.parse(document.getElementById('data').textContent);
+
+      let weeks = proc.map((x) => x.week);
+      let fCont = document.getElementById('filterCont');
+      weeks.forEach((w) => {
+        if (!document.getElementById('btn' + w)) {
+          let btn = document.createElement('button');
+          btn.type = 'button';
+          btn.setAttribute('onclick', `filterTable(${w})`);
+          btn.classList.add('btn', 'text-dim', 'opacity-50', 'fw-medium', 'text-nowrap', 'rounded-2');
+          btn.style.borderColor = 'transparent';
+          btn.innerHTML = `Week ${w}`;
+          btn.id = 'btn' + w;
+          fCont.appendChild(btn);
+        }
+      });
+    }
+
     function filterTable(week) {
 
       let togglebtn = document.getElementById('toggle-picks-btn');
@@ -458,9 +405,15 @@
       }
 
       if (num_games > 0) {
-        let pc_pre = 100 * (num_pre / num_games);
-        let pc_in = 100 * (num_in / num_games);
-        let pc_post = 100 * (num_post / num_games);
+        let pc_pre = Math.round(100 * (num_pre / num_games));
+        let pc_in = Math.round(100 * (num_in / num_games));
+        let pc_post = Math.round(100 * (num_post / num_games));
+        let pc_offset = 100 - (pc_pre + pc_in + pc_post);
+        // if (pc_offset > 0) {
+        pc_pre = pc_pre + pc_offset;
+        // } else {
+        //   pc_pre = 
+        // }
         document.getElementById('progPre').style.width = pc_pre.toString() + '%';
         document.getElementById('progIn').style.width = pc_in.toString() + '%';
         document.getElementById('progPost').style.width = pc_post.toString() + '%';
@@ -496,11 +449,14 @@
       let rows = tbl.getElementsByClassName('pickrow');
       for (let i = 0; i < rows.length; i++) {
         let row = rows.item(i);
-        let is_shown = row.classList.contains('hide') == false;
+        let is_shown = row.classList.contains('show') == true;
+        // let rowBS = new bootstrap.Collapse(row);
         if (!picks_on) {
-          if (!is_shown) row.classList.remove('hide');
+          if (!is_shown) row.classList.add('show');
+          // if (!is_shown) rowBS.show();
         } else {
-          if (is_shown) row.classList.add('hide');
+          if (is_shown) row.classList.remove('show');
+          // if (is_shown) rowBS.hide();
         }
       }
     }
@@ -517,6 +473,8 @@
         game.gameday = game.gameday.replace(', ', ' ');
         game.gameday_long = new Date(game.gametime).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
         game.gametime = new Date(game.gametime).toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric' });
+        game.away_logo = game.away_logo.replace('500', '500-dark');
+        game.home_logo = game.home_logo.replace('500', '500-dark');
         let rec = [
           'espn_id', 'game_id', 'week', 'gameday_long', 'gameday', 'gametime', 'state', 'stateshort',
           'away_team', 'away_teamshort', 'away_teamfull', 'away_record', 'away_logo', 'away_score', 'away_color',
@@ -537,6 +495,7 @@
               pick_color += r.home_color;
               pick_coloralt += r.home_coloralt;
             }
+            // r.pick_logo = r.pick_logo.replace('500', '500-dark');
             return {
               player: r.player,
               pick_team: r.pick_team, pick_teamshort: r.pick_teamshort, pick_logo: r.pick_logo, pick_color: pick_color, pick_coloralt: pick_coloralt,
@@ -592,6 +551,8 @@
             let pid = comp.situation.possession;
             if (pid == hid) data.home_poss = '1';
             if (pid == aid) data.away_poss = '1';
+            data.poss_loc = comp.situation.possessionText;
+            data.poss_dd = comp.situation.shortDownDistanceText;
           }
         }
 
@@ -620,6 +581,8 @@
             g.stateshort = glive.stateshort;
             g.away_poss = glive.away_poss;
             g.home_poss = glive.home_poss;
+            g.poss_loc = glive.poss_loc;
+            g.poss_dd = glive.poss_dd;
             let ascore = parseInt(glive.away_score);
             let hscore = parseInt(glive.home_score);
 
