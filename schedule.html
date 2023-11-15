@@ -45,6 +45,7 @@
   </style>
 </head>
 
+
 <body style="margin-bottom: 160px; margin-top:10px;">
   <div class="container mx-auto px-0" style="max-width: 600px;">
     <div class="mx-1">
@@ -96,12 +97,12 @@
       setLoadingBar(0);
       setLoadingBar(33, 'Fetching games...');
       const currweek = await getCurrentWeek();
-      const games = await getSheet('dbGames');
+      // const games = await getSheet('Games');
 
       setLoadingBar(66, 'Fetching picks...');
-      const picks = await getSheet('dbFull');
+      const picks = await getSheet('Full');
 
-      let data = procData(games, picks);
+      let data = procData(picks);
       if (refresh == true) {
         setLoadingBar(100, 'Fetching live scores...');
         const livedata = await fetchLive(currweek);
@@ -463,12 +464,12 @@
 
     /* ------------------------------------------------ */
 
-    function procData(dbGames, dbFull) {
-      let games = dbGames.map((x) => x['game_id']);
+    function procData(dbFull) {
+      let games = dbFull.map((x) => x['game_id']);
       games = games.filter((c, index) => games.indexOf(c) === index);
       let data = games.map((gid) => {
-        let gamedata = dbGames.filter((x) => x['game_id'] == gid);
-        let game = gamedata[0];
+        let responses = dbFull.filter((x) => x['game_id'] == gid);
+        let game = responses[0];
         game.gameday = new Date(game.gametime).toLocaleDateString('en-US', { weekday: 'short', month: 'numeric', day: 'numeric' });
         game.gameday = game.gameday.replace(', ', ' ');
         game.gameday_long = new Date(game.gametime).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
@@ -482,28 +483,26 @@
           'spread', 'win_team']
           .reduce((obj2, key) => (obj2[key] = game[key], obj2), {});
 
-        let responses = dbFull.filter((x) => x['game_id'] == gid);
-        if (responses.length > 1) {
-          let resp = responses.map((r) => {
-            let pick_color = '';
-            let pick_coloralt = '';
-            if (r.pick_team == r.away_team) {
-              pick_color += r.away_color;
-              pick_coloralt += r.away_coloralt;
-            }
-            if (r.pick_team == r.home_team) {
-              pick_color += r.home_color;
-              pick_coloralt += r.home_coloralt;
-            }
-            // r.pick_logo = r.pick_logo.replace('500', '500-dark');
-            return {
-              player: r.player,
-              pick_team: r.pick_team, pick_teamshort: r.pick_teamshort, pick_logo: r.pick_logo, pick_color: pick_color, pick_coloralt: pick_coloralt,
-              status: r.status
-            }
-          });
-          rec['responses'] = resp;
-        }
+        let resp = responses.map((r) => {
+          let pick_color = '';
+          let pick_coloralt = '';
+          if (r.pick_team == r.away_team) {
+            pick_color += r.away_color;
+            pick_coloralt += r.away_coloralt;
+          }
+          if (r.pick_team == r.home_team) {
+            pick_color += r.home_color;
+            pick_coloralt += r.home_coloralt;
+          }
+          // r.pick_logo = r.pick_logo.replace('500', '500-dark');
+          return {
+            player: r.player,
+            pick_team: r.pick_team, pick_teamshort: r.pick_teamshort, pick_logo: r.pick_logo, pick_color: pick_color, pick_coloralt: pick_coloralt,
+            status: r.status
+          }
+        });
+        rec['responses'] = resp;
+
         if (rec.stateshort.split(' - ')[0] == 'TBD') rec.stateshort = 'TBD';
         return rec;
       });

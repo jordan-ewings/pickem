@@ -55,31 +55,6 @@
 
     sendData();
 
-    async function userLogger() {
-      let newUserId = 'U' + Math.floor(Math.random() * 100000).toString();
-      if (localStorage.getItem('uid') == null) {
-        localStorage.setItem('uid', newUserId);
-      }
-
-      let userId = localStorage.getItem('uid');
-      // let userId = 'XXXX';
-      let visitStamp = new Date().toUTCString();
-      let url = "https://script.google.com/macros/s/AKfycby4aE_MdYFa1RUH3DMLpltpFrrzKegHUp42TPQ00bEP2S9IUgF-HbdZ1SABAZOpIFAYjw/exec";
-      let params = '?userId=' + userId + '&visitStamp=' + visitStamp;
-      let fullurl = encodeURI(url + params);
-
-
-      let requestOptions = {
-        method: 'POST',
-        redirect: 'follow'
-      };
-
-      await fetch(fullurl, requestOptions)
-        .then(response => response.text())
-        .then(result => console.log(result))
-        .catch(error => console.log('error', error));
-    }
-
     /* ------------------------------------------------ */
 
     async function sendData() {
@@ -107,6 +82,7 @@
       header.addChild(new El('td').addClass(hf).addChild('DOG'));
       header.addChild(new El('td').addClass(hf).addChild('DOG W'));
       body.addChild(header);
+
 
       proc.forEach((g) => {
         if (g.gb == '') g.gb = '-';
