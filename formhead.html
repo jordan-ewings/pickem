@@ -77,12 +77,13 @@
 
     function calcDiff(info) {
 
-      let now = new Date().valueOf();
-      let start = new Date(info.DL).valueOf() + (1000 * 60 * 5);
-      if (now - start > 0) {
-        if (info.PRE < 1) return 'Expired';
+      let now = new Date();
+      let start = new Date(info.DL);
+      let expires = new Date(info.DLall);
+      if (now > start) {
+        if (now > expires) return 'Expired';
         if (info.Status.includes('game')) return info.Status;
-        return 'Games Started'
+        return 'Games Started';
       }
 
       let rem = Math.abs(start - now) / (1000);

@@ -97,7 +97,6 @@
       setLoadingBar(0);
       setLoadingBar(33, 'Fetching games...');
       const currweek = await getCurrentWeek();
-      // const games = await getSheet('Games');
 
       setLoadingBar(66, 'Fetching picks...');
       const picks = await getSheet('Full');
@@ -110,13 +109,15 @@
       } else {
         setLoadingBar(100, 'Fetching scores...');
       }
+      document.getElementById('view-loading').classList.add('d-none');
+
+      // data = data.filter((x) => x.week == '18');
+      // document.getElementById("data").textContent = JSON.stringify(data, undefined, 2);
 
       document.getElementById("data").textContent = JSON.stringify(data, undefined, 2);
-
       makeWeekButtons();
       buildRows();
       filterTable(currweek);
-      document.getElementById('view-loading').classList.add('d-none');
       document.getElementById("toggle-picks-btn").classList.remove('d-none');
       document.getElementById("progGames").classList.remove('d-none');
 
@@ -263,14 +264,6 @@
         let elogo = new El('img').addSrc(logo);
         let ename = new El('span');
         if (state == 'post' && !f_win) ename.addClass('opacity-25');
-        // if (state != 'in' && responses.length > 0) {
-        //   let picks = responses.filter((x) => x.pick_teamshort == name);
-        //   let epicks = new El('span').addChild(picks.length.toString());
-        //   if (picks.length == 0) ename.addChild(name);
-        //   if (picks.length > 0) ename.addChild(name + epicks.addClass('badge rounded-circle bg-dim text-dim fw-medium ms-2 ').html());
-        // } else {
-        //   ename.addChild(name);
-        // }
         ename.addChild(name);
         let eposs = new El('i');
         if (g[t + '_poss']) {
@@ -358,16 +351,18 @@
 
       const proc = JSON.parse(document.getElementById('data').textContent);
 
-      let weeks = proc.map((x) => x.week);
+      let weeks = proc;
       let fCont = document.getElementById('filterCont');
-      weeks.forEach((w) => {
+      weeks.forEach((wdata) => {
+        let w = wdata.week;
+        let wlab = wdata.week_label;
         if (!document.getElementById('btn' + w)) {
           let btn = document.createElement('button');
           btn.type = 'button';
           btn.setAttribute('onclick', `filterTable(${w})`);
           btn.classList.add('btn', 'text-dim', 'opacity-50', 'fw-medium', 'text-nowrap', 'rounded-2');
           btn.style.borderColor = 'transparent';
-          btn.innerHTML = `Week ${w}`;
+          btn.innerHTML = `${wlab}`;
           btn.id = 'btn' + w;
           fCont.appendChild(btn);
         }
@@ -382,7 +377,6 @@
 
       let tbl = document.getElementById('tblGames');
       let weeks = tbl.getElementsByClassName('week-games');
-      let num_prows;
       let num_games;
       let num_pre;
       let num_in;
@@ -397,7 +391,6 @@
         if (!is_week && is_shown) wdiv.classList.add('hide');
 
         if (is_week) {
-          num_prows = wdiv.getElementsByClassName('pickrow').length;
           num_games = wdiv.getElementsByClassName('tblrow').length;
           num_pre = wdiv.getElementsByClassName('game-pre').length;
           num_in = wdiv.getElementsByClassName('game-in').length;
@@ -410,20 +403,10 @@
         let pc_in = Math.round(100 * (num_in / num_games));
         let pc_post = Math.round(100 * (num_post / num_games));
         let pc_offset = 100 - (pc_pre + pc_in + pc_post);
-        // if (pc_offset > 0) {
         pc_pre = pc_pre + pc_offset;
-        // } else {
-        //   pc_pre = 
-        // }
         document.getElementById('progPre').style.width = pc_pre.toString() + '%';
         document.getElementById('progIn').style.width = pc_in.toString() + '%';
         document.getElementById('progPost').style.width = pc_post.toString() + '%';
-      }
-
-      if (num_prows == 0) {
-        if (is_enabled) togglebtn.classList.add('disabled');
-      } else {
-        if (!is_enabled) togglebtn.classList.remove('disabled');
       }
 
       let fCont = document.getElementById('filterCont');
@@ -470,40 +453,26 @@
       let data = games.map((gid) => {
         let responses = dbFull.filter((x) => x['game_id'] == gid);
         let game = responses[0];
-        game.gameday = new Date(game.gametime).toLocaleDateString('en-US', { weekday: 'short', month: 'numeric', day: 'numeric' });
-        game.gameday = game.gameday.replace(', ', ' ');
-        game.gameday_long = new Date(game.gametime).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
-        game.gametime = new Date(game.gametime).toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric' });
-        game.away_logo = game.away_logo.replace('500', '500-dark');
-        game.home_logo = game.home_logo.replace('500', '500-dark');
+        game.gameday = game.gametime_short.split(' @ ')[0];
+        game.gameday_long = game.gametime_long.split(' @ ')[0];
+        game.gametime = game.gametime_short.split(' @ ')[1];
+        game.away_logo = (game.away_team != 'TBD') ? game.away_logo.replace('500', '500-dark') : game.away_logo;
+        game.home_logo = (game.home_team != 'TBD') ? game.home_logo.replace('500', '500-dark') : game.home_logo;
         let rec = [
-          'espn_id', 'game_id', 'week', 'gameday_long', 'gameday', 'gametime', 'state', 'stateshort',
+          'game_id', 'week', 'week_label', 'gameday_long', 'gameday', 'gametime', 'state', 'stateshort',
           'away_team', 'away_teamshort', 'away_teamfull', 'away_record', 'away_logo', 'away_score', 'away_color',
           'home_team', 'home_teamshort', 'home_teamfull', 'home_record', 'home_logo', 'home_score', 'home_color',
           'spread', 'win_team']
           .reduce((obj2, key) => (obj2[key] = game[key], obj2), {});
 
         let resp = responses.map((r) => {
-          let pick_color = '';
-          let pick_coloralt = '';
-          if (r.pick_team == r.away_team) {
-            pick_color += r.away_color;
-            pick_coloralt += r.away_coloralt;
-          }
-          if (r.pick_team == r.home_team) {
-            pick_color += r.home_color;
-            pick_coloralt += r.home_coloralt;
-          }
-          // r.pick_logo = r.pick_logo.replace('500', '500-dark');
           return {
             player: r.player,
-            pick_team: r.pick_team, pick_teamshort: r.pick_teamshort, pick_logo: r.pick_logo, pick_color: pick_color, pick_coloralt: pick_coloralt,
-            status: r.status
+            pick_team: r.pick_team, pick_teamshort: r.pick_teamshort, pick_logo: r.pick_logo,
+            status: r.status, f_underdog: r.f_underdog, f_win: r.f_win
           }
         });
         rec['responses'] = resp;
-
-        if (rec.stateshort.split(' - ')[0] == 'TBD') rec.stateshort = 'TBD';
         return rec;
       });
 
@@ -511,8 +480,10 @@
       weeks = weeks.filter((c, index) => weeks.indexOf(c) === index);
       let weeklydata = weeks.map((w) => {
         let games = data.filter((x) => x['week'] == w);
+        let week_label = games[0]['week_label'];
         return {
           week: w,
+          week_label: week_label,
           games: games
         }
       });
@@ -536,7 +507,7 @@
         let aid = comp.competitors[1].id;
 
         let data = {};
-        data.espn_id = game.id;
+        data.game_id = game.id;
         data.week = game.week.number;
         data.home_score = game.competitions[0].competitors[0].score;
         data.away_score = game.competitions[0].competitors[1].score;
@@ -571,7 +542,7 @@
         if (w.week == week) {
           w.games = w.games.map((game) => {
             let g = game;
-            let glive = live.filter((x) => x.espn_id == g.espn_id)[0];
+            let glive = live.filter((x) => x.game_id == g.game_id)[0];
             console.log(g);
             console.log(glive);
             g.away_score = glive.away_score;
@@ -617,9 +588,8 @@
     /* ------------------------------------------------ */
 
     async function getCurrentWeek() {
-      let forms = await getSheet('Info');
-      forms.reverse();
-      let currweek = forms[0]['Form'].split(' ')[1];
+      let info = await getSheet('SeasonInfo');
+      let currweek = info.filter((x) => x.current == '1')[0]['week'];
       return currweek;
     }
 
