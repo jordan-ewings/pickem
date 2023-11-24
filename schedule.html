@@ -87,21 +87,24 @@
   <div class="container text-smaller d-none">
     <pre id="data" class=""></pre>
   </div>
+  <script src="https://cdn.jsdelivr.net/gh/jordan-ewings/pickem@main/scripts/base.js"></script>
   <script>
 
-    sendData(refresh = false);
+    sendData(refresh = false, devmode = true);
 
     /* ------------------------------------------------ */
 
-    async function sendData(refresh) {
+    async function sendData(refresh, devmode) {
+
       setLoadingBar(0);
       setLoadingBar(33, 'Fetching games...');
       const currweek = await getCurrentWeek();
+      const games = await getSheet('Games');
 
       setLoadingBar(66, 'Fetching picks...');
-      const picks = await getSheet('Full');
+      const picks = await getSheet('Responses');
 
-      let data = procData(picks);
+      let data = procData(games, picks);
       if (refresh == true) {
         setLoadingBar(100, 'Fetching live scores...');
         const livedata = await fetchLive(currweek);
@@ -111,38 +114,27 @@
       }
       document.getElementById('view-loading').classList.add('d-none');
 
-      // data = data.filter((x) => x.week == '18');
-      // document.getElementById("data").textContent = JSON.stringify(data, undefined, 2);
+      if (devmode == true) {
+        data = data.filter((x) => x.week == currweek);
+        document.getElementById("data").textContent = JSON.stringify(data, undefined, 2);
+        document.getElementById("data").parentElement.classList.remove('d-none');
+        return;
+      }
 
       document.getElementById("data").textContent = JSON.stringify(data, undefined, 2);
-      makeWeekButtons();
-      buildRows();
+      makeWeekButtons(data);
+      buildRows(data);
       filterTable(currweek);
       document.getElementById("toggle-picks-btn").classList.remove('d-none');
       document.getElementById("progGames").classList.remove('d-none');
-
-      // setTimeout(function () {
-      //   const tblrows = document.querySelectorAll('.tblrow');
-      //   for (let i = 0; i < tblrows.length; i++) {
-      //     var tblrow = tblrows.item(i);
-      //     var gamerow = tblrow.querySelector('.gamerow');
-      //     gamerow.onclick = function () {
-      //       let picks = this.parentElement.querySelector(".pickrow");
-      //       if (picks != null) {
-      //         let is_shown = picks.classList.contains("hide") == false;
-      //         if (!is_shown) picks.classList.remove("hide");
-      //         if (is_shown) picks.classList.add("hide");
-      //       }
-      //     };
-      //   };
-      // }, 1000);
     }
 
     /* ------------------------------------------------ */
 
-    function buildRows() {
+    function buildRows(data) {
 
-      const proc = JSON.parse(document.getElementById('data').textContent);
+      // const proc = JSON.parse(document.getElementById('data').textContent);
+      const proc = data;
 
       let rowdata = proc.map((w) => {
         let rows = new El('div').addClass('week-games').addId('week-games-' + w.week);
@@ -347,9 +339,10 @@
 
     /* ------------------------------------------------ */
 
-    function makeWeekButtons() {
+    function makeWeekButtons(data) {
 
-      const proc = JSON.parse(document.getElementById('data').textContent);
+      // const proc = JSON.parse(document.getElementById('data').textContent);
+      const proc = data;
 
       let weeks = proc;
       let fCont = document.getElementById('filterCont');
@@ -381,6 +374,7 @@
       let num_pre;
       let num_in;
       let num_post;
+
 
       for (let i = 0; i < weeks.length; i++) {
         let wdiv = weeks.item(i);
@@ -445,51 +439,7 @@
       }
     }
 
-    /* ------------------------------------------------ */
 
-    function procData(dbFull) {
-      let games = dbFull.map((x) => x['game_id']);
-      games = games.filter((c, index) => games.indexOf(c) === index);
-      let data = games.map((gid) => {
-        let responses = dbFull.filter((x) => x['game_id'] == gid);
-        let game = responses[0];
-        game.gameday = game.gametime_short.split(' @ ')[0];
-        game.gameday_long = game.gametime_long.split(' @ ')[0];
-        game.gametime = game.gametime_short.split(' @ ')[1];
-        game.away_logo = (game.away_team != 'TBD') ? game.away_logo.replace('500', '500-dark') : game.away_logo;
-        game.home_logo = (game.home_team != 'TBD') ? game.home_logo.replace('500', '500-dark') : game.home_logo;
-        let rec = [
-          'game_id', 'week', 'week_label', 'gameday_long', 'gameday', 'gametime', 'state', 'stateshort',
-          'away_team', 'away_teamshort', 'away_teamfull', 'away_record', 'away_logo', 'away_score', 'away_color',
-          'home_team', 'home_teamshort', 'home_teamfull', 'home_record', 'home_logo', 'home_score', 'home_color',
-          'spread', 'win_team']
-          .reduce((obj2, key) => (obj2[key] = game[key], obj2), {});
-
-        let resp = responses.map((r) => {
-          return {
-            player: r.player,
-            pick_team: r.pick_team, pick_teamshort: r.pick_teamshort, pick_logo: r.pick_logo,
-            status: r.status, f_underdog: r.f_underdog, f_win: r.f_win
-          }
-        });
-        rec['responses'] = resp;
-        return rec;
-      });
-
-      let weeks = data.map((x) => x['week']);
-      weeks = weeks.filter((c, index) => weeks.indexOf(c) === index);
-      let weeklydata = weeks.map((w) => {
-        let games = data.filter((x) => x['week'] == w);
-        let week_label = games[0]['week_label'];
-        return {
-          week: w,
-          week_label: week_label,
-          games: games
-        }
-      });
-
-      return weeklydata;
-    }
 
     /* ------------------------------------------------ */
 
@@ -605,7 +555,7 @@
     }
 
   </script>
-  <script src="https://cdn.jsdelivr.net/gh/jordan-ewings/pickem@main/scripts/base.js"></script>
+
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous">
   </script>
 </body>

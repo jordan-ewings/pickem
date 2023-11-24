@@ -42,37 +42,30 @@
   </div>
 
   <script>
-    var formType = "WEEKEND";
+    var formType = "TNF";
     sendData();
 
     async function sendData() {
       const data = await getSheet('Info');
-      const info = getCurrentForms(data)[formType];
-      const formName = info.title;
+      const info = getCurrentForms(data);
+      const is_past = new Date() > new Date(info.DLall);
+      const formName = info.Form;
       const formData = await getSheet(formName);
-      const rows = make_prows(formData);
+      const rows = make_prows(formData, is_past);
 
       document.getElementById("mytable").querySelector('tbody').innerHTML = rows;
     }
 
     function getCurrentForms(infoData) {
-      let forms = infoData;
-      forms.reverse();
-      let tnf = forms.filter((x) => x['Form'].includes('TNF') == true)[0];
-      let wknd = forms.filter((x) => x['Form'].includes('TNF') == false)[0];
-      return {
-        TNF: {
-          title: tnf['Form'],
-          status: tnf['Status']
-        },
-        WEEKEND: {
-          title: wknd['Form'],
-          status: wknd['Status']
-        }
-      };
+      let data = infoData;
+      let fid = 1;
+      if (formType != 'TNF') fid = 0;
+      data.reverse();
+      let info = data[fid];
+      return info;
     }
 
-    function make_prows(formData) {
+    function make_prows(formData, is_past) {
       let playerList = ['Austin', 'Carly', 'Carter', 'John', 'Jordan', 'Kayla', 'Kristen', 'Kristy', 'Stella'];
       let psublist = formData.map((row) => row['Select your name:']);
       psublist.push(...playerList);
@@ -81,6 +74,7 @@
       players.forEach((p) => {
         let player = p;
         let status = 'PENDING';
+        if (is_past == true) status = 'NO PICK';
         let rec = formData.filter((row) => row['Select your name:'] == player);
         let ename = new El('td');
         let estat = new El('td');

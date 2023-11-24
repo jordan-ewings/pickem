@@ -42,13 +42,14 @@
       margin: auto;
       height: 80vh;
       width: 80vw;
+
     }
   </style>
 </head>
 
 <body class="m-0">
-  <div class="chart-container" style="max-width: 600px;">
-    <canvas id="myChart"></canvas>
+  <div class="table-responsive" style="max-width: 600px;">
+    <canvas id="myChart" class="table" style="height: 100vh;"></canvas>
   </div>
 
   <div class="container d-none">
@@ -57,6 +58,7 @@
   <script>
 
     sendData();
+    parent.document.getElementById('userHtmlFrame').setAttribute('scrolling', 'no');
 
     /* ------------------------------------------------ */
 
@@ -73,10 +75,11 @@
         '#58595b',
         '#8549ba'
       ];
-      let players = Object.keys(data[0]).filter((x) => x != 'week');
+      let headers = Object.keys(data[0])
+      let players = headers.filter((x) => x != 'week');
       let datasets = [];
       players.forEach((player, index) => {
-        // if (player == 'week') return;
+        if (player == '') return;
         let pdata = {
           label: player,
           data: data.map(x => {
@@ -86,13 +89,17 @@
           }),
 
           fill: false,
-          borderColor: COLORS[index], // Random color for each player
+          borderColor: COLORS[index],
+          backgroundColor: COLORS[index],
+          pointStyle: 'circle',
+          pointRadius: 5,
+          pointHoverRadius: 10
         };
         datasets.push(pdata);
       });
 
       let chartData = {
-        labels: data.map(x => parseInt(x.week)),
+        labels: data.map(x => 'Week ' + x.week),
         datasets: datasets
       };
 
@@ -112,58 +119,43 @@
       let chart = new Chart(ctx, {
         type: 'line',
         data: chartData,
+
         options: {
-          // responsive: true,
-          // Container for pan options
-          pan: {
-            // Boolean to enable panning
-            enabled: true,
 
-            // Panning directions. Remove the appropriate direction to disable 
-            // Eg. 'y' would only allow panning in the y direction
-            mode: 'x',
-
-            speed: 1
+          responsive: true,
+          interaction: {
+            intersect: true,
+            mode: 'dataset',
+            axis: 'xy'
           },
-
-          // Container for zoom options
-          zoom: {
-            // Boolean to enable zooming
-            enabled: true,
-            // Zooming directions. Remove the appropriate direction to disable 
-            // Eg. 'y' would only allow zooming in the y direction
-            mode: 'x',
-          },
-          // Customize options as needed
           scales: {
             y: {
-              reverse: false,
-              // beginAtZero: true,
-              // Add any additional y-axis configurations here if necessary
+              reverse: true,
+              beginAtZero: true
             },
             x: {
-              // Add any additional x-axis configurations here if necessary
             },
           },
           plugins: {
 
             legend: {
               display: true,
-              position: 'right',
+              position: 'top',
+              labels: {
+                padding: 20,
+                usePointStyle: true
+              }
             },
           },
           elements: {
-            point: {
-
-              radius: 5, // Set the radius of the points
-              hitRadius: 10,
-              hoverRadius: 8,
-            },
+            // point: {
+            //   radius: 3, // Set the radius of the points
+            //   hitRadius: 10,
+            //   hoverRadius: 8,
+            // },
           },
         },
       });
-
-
     }
 
     /* ------------------------------------------------ */

@@ -56,8 +56,9 @@
 
     async function sendData() {
       const data = await getSheet('Info');
+
       document.getElementById("data").textContent = JSON.stringify(data, undefined, 2);
-      hljs.highlightElement(document.getElementById("data"))
+
 
       sendDataStore();
       setInterval(sendDataStore, 1000);
@@ -65,11 +66,10 @@
 
     function sendDataStore() {
       let data = JSON.parse(document.getElementById('data').textContent);
-      let is_tnf = true;
-      if (formType != 'TNF') is_tnf = false;
-
+      let fid = 1;
+      if (formType != 'TNF') fid = 0;
       data.reverse();
-      let info = data.filter((x) => x['Form'].includes('TNF') == is_tnf)[0];
+      let info = data[fid];
       let rem = calcDiff(info);
       document.getElementById("fname").innerHTML = info.Form;
       document.getElementById("fexp").innerHTML = rem;
@@ -135,6 +135,7 @@
         .addChild(new El('span').addClass(durClass).addChild('SEC'));
 
 
+
       elab
         .addChild(eD)
         .addChild(eH)
@@ -143,6 +144,7 @@
 
       return elab.html();
     }
+
 
     /* ------------------------------------------------ */
 

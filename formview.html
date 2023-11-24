@@ -23,11 +23,10 @@
 
     async function getForm() {
       let data = await getSheet('Info');
-      let is_tnf = true;
-      if (formType != 'TNF') is_tnf = false;
-
+      let fid = 1;
+      if (formType != 'TNF') fid = 0;
       data.reverse();
-      let info = data.filter((x) => x['Form'].includes('TNF') == is_tnf)[0];
+      let info = data[fid];
       let formURL = info['URL'];
 
       const frm = document.getElementById("formFrame");
