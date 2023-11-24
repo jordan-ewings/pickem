@@ -45,49 +45,6 @@ function procSheet(raw) {
 
 /* ------------------------------------------------ */
 
-function procData(dbGames, dbResponses) {
-  let data = dbGames.map((game) => {
-    let responses = dbResponses.filter((x) => x['game_id'] == game['game_id']);
-    game.gameday = game.gametime_short.split(' @ ')[0];
-    game.gameday_long = game.gametime_long.split(' @ ')[0];
-    game.gametime = game.gametime_short.split(' @ ')[1];
-    game.away_logo = (game.away_team != 'TBD') ? game.away_logo.replace('500', '500-dark') : game.away_logo;
-    game.home_logo = (game.home_team != 'TBD') ? game.home_logo.replace('500', '500-dark') : game.home_logo;
-    let rec = [
-      'game_id', 'week', 'week_label', 'gameday_long', 'gameday', 'gametime', 'state', 'stateshort',
-      'away_team', 'away_teamshort', 'away_teamfull', 'away_record', 'away_logo', 'away_score', 'away_color',
-      'home_team', 'home_teamshort', 'home_teamfull', 'home_record', 'home_logo', 'home_score', 'home_color',
-      'spread', 'win_team']
-      .reduce((obj2, key) => (obj2[key] = game[key], obj2), {});
-
-    if (responses.length > 0) {
-      // let resp = responses.map((r) => {
-      //   return {
-      //     player: r.player,
-      //     pick_team: r.pick_team, pick_teamshort: r.pick_teamshort, pick_logo: r.pick_logo,
-      //     status: r.status, f_underdog: r.f_underdog, f_win: r.f_win
-      //   }
-      // });
-      rec['responses'] = responses;
-    }
-    return rec;
-  });
-
-  let weeks = data.map((x) => x['week']);
-  weeks = weeks.filter((c, index) => weeks.indexOf(c) === index);
-  let weeklydata = weeks.map((w) => {
-    let games = data.filter((x) => x['week'] == w);
-    let week_label = games[0]['week_label'];
-    return {
-      week: w,
-      week_label: week_label,
-      games: games
-    }
-  });
-
-  return weeklydata;
-}
-
 class El {
 
   constructor(tag) {
