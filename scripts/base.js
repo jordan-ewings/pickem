@@ -1,7 +1,7 @@
 
 /* ------------------------------------------------ */
 
-export function procSheet(raw) {
+function procSheet(raw) {
   const table = JSON.parse(raw.substring(47).slice(0, -2))['table'];
   let headers;
   let data;
@@ -45,7 +45,7 @@ export function procSheet(raw) {
 
 /* ------------------------------------------------ */
 
-export function procData(dbGames, dbResponses) {
+function procData(dbGames, dbResponses) {
   let data = dbGames.map((game) => {
     let responses = dbResponses.filter((x) => x['game_id'] == game['game_id']);
     game.gameday = game.gametime_short.split(' @ ')[0];
@@ -88,7 +88,7 @@ export function procData(dbGames, dbResponses) {
   return weeklydata;
 }
 
-export class El {
+class El {
 
   constructor(tag) {
     this.tag = tag;
