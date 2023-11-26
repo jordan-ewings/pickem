@@ -40,12 +40,6 @@
       </tbody>
     </table>
   </div>
-  <template id="temp-row">
-    <tr>
-      <td class=""></td>
-      <td class="text-end"></td>
-    </tr>
-  </template>
 
   <script>
     var formType = "TNF";
@@ -57,9 +51,8 @@
       const is_past = new Date() > new Date(info.DLall);
       const formName = info.Form;
       const formData = await getSheet(formName);
-      const rows = make_prows(formData, is_past);
 
-      // document.getElementById("mytable").querySelector('tbody').innerHTML = rows;
+      make_prows(formData, is_past);
     }
 
     function getCurrentForms(infoData) {
@@ -73,29 +66,20 @@
 
     function make_prows(formData, is_past) {
 
-      let tbody = document.getElementById("mytable").querySelector('tbody');
-      let tempRow = document.getElementById('temp-row').content;
-
       let playerList = ['Austin', 'Carly', 'Carter', 'John', 'Jordan', 'Kayla', 'Kristen', 'Kristy', 'Stella'];
       let psublist = formData.map((row) => row['Select your name:']);
       psublist.push(...playerList);
       let players = psublist.filter((c, index) => psublist.indexOf(c) == index);
-      // let rows = '';
+      let rows = '';
       players.forEach((p) => {
         let player = p;
         let status = 'PENDING';
         if (is_past == true) status = 'NO PICK';
         let rec = formData.filter((row) => row['Select your name:'] == player);
-
-        let tr = tempRow.content.cloneNode(true);
-        let td = tr.querySelectorAll("td");
-        let ename = td[0];
-        let estat = td[1];
-
+        let ename = new El('td');
+        let estat = new El('td');
         if (rec.length > 0) {
-          ename.classList.add('fw-medium');
-          ename.
-            ename.addClass('fw-medium').addChild(player);
+          ename.addClass('fw-medium').addChild(player);
           estat.addClass('fw-medium text-end').addChild('SUBMITTED');
         } else {
           ename.addClass('text-dim').addChild(player);
@@ -105,35 +89,9 @@
         let row = new El('tr').addChild(ename).addChild(estat);
         rows += row.html();
       });
-      return rows;
+
+      document.getElementById("mytable").querySelector('tbody').innerHTML = rows;
     }
-    // function make_prows(formData, is_past) {
-
-    //   let playerList = ['Austin', 'Carly', 'Carter', 'John', 'Jordan', 'Kayla', 'Kristen', 'Kristy', 'Stella'];
-    //   let psublist = formData.map((row) => row['Select your name:']);
-    //   psublist.push(...playerList);
-    //   let players = psublist.filter((c, index) => psublist.indexOf(c) == index);
-    //   let rows = '';
-    //   players.forEach((p) => {
-    //     let player = p;
-    //     let status = 'PENDING';
-    //     if (is_past == true) status = 'NO PICK';
-    //     let rec = formData.filter((row) => row['Select your name:'] == player);
-    //     let ename = new El('td');
-    //     let estat = new El('td');
-    //     if (rec.length > 0) {
-    //       ename.addClass('fw-medium').addChild(player);
-    //       estat.addClass('fw-medium text-end').addChild('SUBMITTED');
-    //     } else {
-    //       ename.addClass('text-dim').addChild(player);
-    //       estat.addClass('text-dim text-end').addChild(status);
-    //     }
-
-    //     let row = new El('tr').addChild(ename).addChild(estat);
-    //     rows += row.html();
-    //   });
-    //   return rows;
-    // }
 
     /* ------------------------------------------------ */
 

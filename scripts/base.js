@@ -58,10 +58,10 @@ class El {
     this.data = {};
   }
 
-  // addData(k, v) {
-  //   this.data[k] = v;
-  //   return this;
-  // }
+  addData(k, v) {
+    this.data[k] = v;
+    return this;
+  }
 
   addId(i) {
     this.id = i;
@@ -112,14 +112,15 @@ class El {
     if (this.styles != '') v += ` style="${this.styles}"`;
     if (this.onclick != '') v += ` onclick="${this.onclick}"`;
     if (this.src != '') v += ` src="${this.src}"`;
-    // for (k in this.data) {
-    //   v += ` data-${k}="${this.data[k]}"`;
-    // }
+    let data = this.data;
+    let dataKeys = Object.keys(data);
+    for (let i = 0; i < dataKeys.length; i++) {
+      v += ` data-${dataKeys[i]}="${data[dataKeys[i]]}"`;
+    }
 
     v += `>`;
     if (this.inner != '') v += `${this.inner}`;
     v += `</${this.tag}>`;
     return v;
   }
-
 }
