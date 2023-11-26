@@ -56,12 +56,17 @@
   <div class="container d-none">
     <pre id="data" class="">NO DATA</pre>
   </div>
+  <div>
+    <p id="pinfo"></p>
+  </div>
   <script>
 
     sendData();
     // let frame = parent.document.getElementById('userHtmlFrame')
-    // let frame = parent.document.getElementsByTagName('iframe').item(0);
-    // frame.setAttribute('scrolling', 'no');
+    let frame = parent.document.getElementsByTagName('iframe').item(0);
+    // let pheight = document.body.querySelector('div').offsetHeight; 
+    // document.getElementById('pinfo').innerHTML = pheight;
+    frame.setAttribute('scrolling', 'no');
     // frame.style.overflow = 'hidden';
 
     /* ------------------------------------------------ */
