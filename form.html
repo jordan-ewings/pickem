@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <style>
+    body {
+      font-size: 11pt !important;
+      color: #efefef !important;
+      background-color: #1e1e1e !important;
+    }
+
+    .game-prop {
+      background-color: #272727 !important;
+      border-color: #545454 !important;
+      color: #efefef !important;
+    }
+
+    .bg-main {
+      background-color: #1e1e1e !important;
+    }
+  </style>
+</head>
+
+<body class="m-0">
+  <div class="container mx-auto px-0 justify-content-center" , style="max-width: 600px;">
+    <div id="form-container" class="container">
+
+    </div>
+  </div>
+
+  <script>
+
+    function populateForm(jsonData) {
+      const form = document.createElement('form');
+      form.setAttribute('action', jsonData.action);
+      form.setAttribute('method', 'POST');
+      form.setAttribute('target', '_blank'); // Opens the form in a new tab
+      form.classList.add('container', 'mt-4'); // Add Bootstrap classes for spacing
+
+      // Create form title
+      const formTitle = document.createElement('h1');
+      formTitle.classList.add('mb-3', 'text-center'); // Bootstrap class for margin
+      formTitle.textContent = jsonData.title;
+      form.appendChild(formTitle);
+
+      const playerQuestions = jsonData.questions.filter((x) => x['type'] == 'ListItem');
+      playerQuestions.forEach(question => {
+        const { title, param, type, choices } = question;
+        const formGroup = document.createElement('div');
+        formGroup.classList.add('form-group', 'mb-3', 'py-3');
+
+        const label = document.createElement('label');
+        label.classList.add('mb-2', 'fw-bold');
+        label.textContent = title;
+        formGroup.appendChild(label);
+
+        const select = document.createElement('select');
+        select.classList.add('form-select', 'game-prop');
+        select.setAttribute('name', param);
+
+        choices.forEach(choice => {
+          const option = document.createElement('option');
+          option.textContent = choice.post_choice;
+          select.appendChild(option);
+        });
+
+        formGroup.appendChild(select);
+        form.appendChild(formGroup);
+      });
+
+      const gameQuestions = jsonData.questions.filter((x) => x['type'] != 'ListItem');
+      gameQuestions.forEach(question => {
+        const { title, param, type, choices } = question;
+
+        // Create form group div
+        const formGroup = document.createElement('div');
+        formGroup.classList.add('form-group', 'mb-3', 'rounded-3', 'p-3', 'border', 'game-prop'); // Adding rounded border and padding
+
+        const mainDiv = document.createElement('div');
+        mainDiv.classList.add('row');
+        const choicesDiv = document.createElement('div');
+        choicesDiv.classList.add('col-9');
+
+        choices.forEach(choice => {
+          const choiceDiv = document.createElement('div');
+          // choiceDiv.classList.add('row', 'text-start'); // Bootstrap classes for button styling
+
+          const choiceId = choice.post_choice.split(' ').join('-');
+          const input = document.createElement('input');
+          input.classList.add('btn-check');
+          input.setAttribute('type', 'radio');
+          input.setAttribute('name', param);
+          input.setAttribute('id', choiceId);
+          input.setAttribute('value', choice.post_choice);
+
+          const label = document.createElement('label');
+          label.classList.add('btn');
+          label.setAttribute('for', choiceId);
+
+          const logo = document.createElement('img');
+          logo.classList.add('object-fit-contain');
+          logo.setAttribute('style', 'height:1.2rem;width:1.2rem;');
+          logo.setAttribute('src', choice.post_choice_logo);
+          logo.setAttribute('alt', choice.post_choice);
+
+          const choiceText = document.createElement('span');
+          choiceText.classList.add('ps-2', 'fw-medium', 'text-light');
+          choiceText.textContent = choice.post_choice;
+
+          const choiceLabelDiv = document.createElement('div');
+          choiceLabelDiv.classList.add('d-flex', 'align-items-center');
+          choiceLabelDiv.appendChild(logo);
+          choiceLabelDiv.appendChild(choiceText);
+          label.appendChild(choiceLabelDiv);
+
+
+          choiceDiv.appendChild(input);
+          choiceDiv.appendChild(label);
+          choicesDiv.appendChild(choiceDiv);
+        });
+        mainDiv.appendChild(choicesDiv);
+        formGroup.appendChild(mainDiv);
+        // formGroup.appendChild(choicesDiv);
+        // Append form group to the form
+        form.appendChild(formGroup);
+      });
+
+      // Create submit button
+      const submitButton = document.createElement('button');
+      submitButton.setAttribute('type', 'submit');
+      submitButton.classList.add('btn', 'btn-primary', 'mt-3'); // Bootstrap classes for submit button
+      submitButton.textContent = 'Submit';
+
+      // Append submit button to the form
+      form.appendChild(submitButton);
+      form.addEventListener('submit', handleFormSubmit);
+
+      // Append the form to a specific element in the HTML (assuming a div with ID 'form-container')
+      const formContainer = document.getElementById('form-container');
+      formContainer.innerHTML = '';
+      formContainer.appendChild(form);
+    }
+
+    // Function to handle form submission
+    function handleFormSubmit(event) {
+      event.preventDefault(); // Prevents the default form submission behavior
+
+      // Get form data
+      const form = event.target;
+      const formData = new FormData(form);
+
+      // Fetch the action URL with form data
+      fetch(form.action, {
+        method: form.method,
+        body: formData,
+      })
+        .then(response => {
+          // Handle the response (if needed)
+          console.log('Form submitted successfully!', response);
+        })
+        .catch(error => {
+          // Handle any errors
+          console.error('Form submission error:', error);
+        });
+    }
+
+
+    var formType = "WEEKEND";
+    // getForm();
+
+    async function getForm() {
+      let data = await getSheet('Info');
+      let fid = 1;
+      if (formType != 'TNF') fid = 0;
+      data.reverse();
+      let info = data[fid];
+      let formName = info['Form'];
+      let rawData = await getSheet('FormPostData');
+
+      let form_titles = rawData.map((x) => x['form_title']);
+      form_titles = form_titles.filter((c, index) => form_titles.indexOf(c) === index);
+      let formsData = form_titles.map((f) => {
+        let formdata = rawData.filter((x) => x['form_title'] == f);
+
+        let inputs = {};
+        inputs.title = formdata[0]['form_title'];
+        inputs.action = formdata[0]['post_root'].split('/viewform')[0] + '/formResponse';
+
+        let questions = formdata.map((x) => x['form_prop']);
+        questions = questions.filter((c, index) => questions.indexOf(c) === index);
+        inputs.questions = questions.map((q) => {
+
+          let propdata = formdata.filter((x) => x['form_prop'] == q);
+          let prop = propdata[0];
+          prop['choices'] = propdata.map((x) => {
+            return {
+              post_choice: x['post_choice'],
+              post_choice_logo: x['post_choice_logo']
+            };
+          });
+          return {
+            'title': prop['form_prop'],
+            'param': prop['post_param'],
+            'type': prop['form_prop_type'],
+            'choices': prop['choices']
+          };
+        });
+
+        return inputs;
+      });
+
+      fdata = formsData.filter((x) => x['title'] == formName)[0];
+      populateForm(fdata);
+    }
+
+    /* ------------------------------------------------ */
+
+    async function getSheet(sheet) {
+      const shname = sheet.split(' ').join('+');
+      const resp = await fetch('https://docs.google.com/spreadsheets/d/14ZYopWScY-nkBJ4Eq7DpLqRw6s2Fre3EWYkKsCIc8lU/gviz/tq?tqx=out:json&tq&sheet=' + shname);
+      const raw = await resp.text();
+      const data = procSheet(raw);
+      return data;
+    }
+
+  </script>
+  <script src="https://cdn.jsdelivr.net/gh/jordan-ewings/pickem@main/scripts/base.js"></script>
+  <!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"> -->
+  </script>
+</body>
+
+</html>

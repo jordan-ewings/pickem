@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-bs-theme="dark" style="overflow: hidden;">
+<html lang="en" data-bs-theme="dark" style="height: fit-content;">
 
 <head>
   <meta charset="utf-8">
@@ -11,12 +11,16 @@
       display: none;
     }
 
+    body {
+      height: fit-content;
+    }
+
     body,
     td {
       font-size: 11pt !important;
       color: #efefef !important;
       background-color: #1e1e1e !important;
-      pointer-events: none;
+      /* pointer-events: none; */
     }
 
     .text-dim {
@@ -53,21 +57,32 @@
     </div>
   </div>
 
+
   <div class="container d-none">
     <pre id="data" class="">NO DATA</pre>
   </div>
-  <div>
-    <p id="pinfo"></p>
-  </div>
+  <!-- <div>
+    <p id='pinfo'></p>
+  </div> -->
+
   <script>
 
     sendData();
     // let frame = parent.document.getElementById('userHtmlFrame')
-    let frame = parent.document.getElementsByTagName('iframe').item(0);
-    // let pheight = document.body.querySelector('div').offsetHeight; 
+    // // parent.document.body.style.setProperty('-webkit-scrollbar', )
+    // let pheight = document.querySelector('html').clientHeight.toString();
+    // frame.style.height = pheight + 'px';
+    // let frame = parent.document.getElementsByTagName('iframe').item(0);
+    // setTimeout()
+    // let pheight = document.body.querySelector('table').clientHeight; 
+    // let pheight = document.querySelector('html').clientHeight;
     // document.getElementById('pinfo').innerHTML = pheight;
-    frame.setAttribute('scrolling', 'no');
-    // frame.style.overflow = 'hidden';
+
+    // frame.setAttribute('scrolling', 'no');
+    // frame.style.pointerEvents = 'none';
+    // frame.style.overflow = 'visible';
+    // frame.style.overscrollBehavior = 'contain'
+
 
     /* ------------------------------------------------ */
 
