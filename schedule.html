@@ -74,6 +74,9 @@
       <!-- game rows-->
 
     </div>
+    <div class="container text-smaller d-none">
+      <pre id="json-data" class=""></pre>
+    </div>
     <div id="view-loading" class="container text-center justify-content-center w-75">
       <div class="d-flex column-gap-1 align-items-baseline justify-content-center">
         <h5></h5>
@@ -82,44 +85,44 @@
         <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 0%"></div>
       </div>
     </div>
-  </div>
+    <div class="modal fade" id="modalFormContainer" tabindex="-1" aria-labelledby="modalFormContainerLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+        <div class="modal-content">
+          <div class="modal-header bg-main">
+            <h5 class="modal-title" id="modalFormContainerLabel">Change your pick</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body bg-main">
+            <form id="modalForm" action="https://script.google.com/macros/s/AKfycbxveY_vNT4LvlRThJQuaRszp9WmEXfKv376CgdNbRM1Gy5jWUjwGmxCo3Jv0fOpacpz/exec" method="POST">
+              <div id="modalFormBody" class="container">
 
-  <div class="modal fade" id="modalFormContainer" tabindex="-1" aria-labelledby="modalFormContainerLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
-      <div class="modal-content">
-        <div class="modal-header bg-main">
-          <h5 class="modal-title" id="modalFormContainerLabel">Change your pick</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-footer bg-main">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-primary">Change Pick</button>
+            </form>
+          </div>
+
         </div>
-        <div class="modal-body bg-main">
-          <form id="modalForm" action="https://script.google.com/macros/s/AKfycbxveY_vNT4LvlRThJQuaRszp9WmEXfKv376CgdNbRM1Gy5jWUjwGmxCo3Jv0fOpacpz/exec" method="POST">
-            <div id="modalFormBody" class="container">
-
-            </div>
-            <div class="modal-footer bg-main">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-              <button type="submit" class="btn btn-primary">Change Pick</button>
-          </form>
-        </div>
-
       </div>
     </div>
+
+
   </div>
 
-  <div class="container text-smaller d-none">
-    <pre id="data" class=""></pre>
-  </div>
-  <!-- <script src="scripts/base.js"></script> -->
-  <!-- <script src="scripts/procGamesResponses.js"></script> -->
+
+
   <script src="https://cdn.jsdelivr.net/gh/jordan-ewings/pickem/scripts/base.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/jordan-ewings/pickem@main/scripts/procGamesResponses.js"></script>
+  <!-- <script src="scripts/base.js"></script> -->
+  <!-- <script src="scripts/procGamesResponses.js"></script> -->
   <script>
 
     sendData(refresh = false, devmode = false);
 
     /* ------------------------------------------------ */
 
-    async function sendData(refresh, devmode) {
+    async function sendData(refresh) {
 
       setLoadingBar(0);
       setLoadingBar(33, 'Fetching games...');
@@ -138,25 +141,21 @@
         setLoadingBar(100, 'Fetching scores...');
       }
       document.getElementById('view-loading').classList.add('d-none');
+      document.getElementById("json-data").textContent = JSON.stringify(data, undefined, 2);
 
       if (devmode == true) {
-        data = data.filter((x) => x.week == currweek);
-        document.getElementById("data").textContent = JSON.stringify(data, undefined, 2);
-        document.getElementById("data").parentElement.classList.remove('d-none');
+        // data = data.filter((x) => x.week == currweek);
+        // document.getElementById("data").textContent = JSON.stringify(data, undefined, 2);
+        document.getElementById("json-data").parentElement.classList.remove('d-none');
         return;
       }
 
-      document.getElementById("data").textContent = JSON.stringify(data, undefined, 2);
       makeWeekButtons();
       appendTblrows();
       filterTable(currweek);
       document.getElementById("toggle-picks-btn").classList.remove('d-none');
       document.getElementById("progGames").classList.remove('d-none');
 
-      setTimeout(() => {
-
-        addChangePickButton();
-      }, 1000)
     }
 
     // when a pick-item is clicked, show modal with form to change pick (pre-select player and team)
@@ -201,18 +200,21 @@
       formbody.appendChild(gamerow.cloneNode(true));
       let game = formbody.querySelector('.gamerow')
       let question = game.getAttribute('data-gameid');
-      let gametime = game.getAttribute('data-gametime');
+      let gametime_raw = game.getAttribute('data-gametime');
+      let gametime = new Date(gametime_raw);
+      let currtime = new Date();
       console.log(game);
+      console.log(gametime_raw);
       console.log(gametime);
+      console.log(currtime);
 
       // if currenttime is more than 5 minutes past gametime, don't allow pick change
-      // let currtime = new Date();
-      // let time_diff = (currtime - gametime) / 1000 / 60;
-      // if (time_diff > 5) {
-      //   let changePickButton = formbody.querySelector('button');
-      //   changePickButton.setAttribute('disabled', '');
-      //   changePickButton.setAttribute('title', 'Pick change disabled 5 minutes after game start');
-      // }
+      let time_diff = (currtime - gametime) / 1000 / 60;
+      if (time_diff > 5) {
+        let changePickButton = formbody.querySelector('button');
+        changePickButton.setAttribute('disabled', '');
+        changePickButton.setAttribute('title', 'Pick change disabled 5 minutes after game start');
+      }
 
       // wrap each team in a radio button input
 
@@ -287,7 +289,7 @@
     // use data and supporting makeDiv functions to build rows (avoid using El objects)
     function appendTblrows() {
 
-      let data = JSON.parse(document.getElementById('data').textContent);
+      let data = JSON.parse(document.getElementById('json-data').textContent);
 
       let rowdata = data.map((w) => {
         let rows = document.createElement('div');
@@ -672,7 +674,7 @@
 
     function makeWeekButtons() {
 
-      const proc = JSON.parse(document.getElementById('data').textContent);
+      const proc = JSON.parse(document.getElementById('json-data').textContent);
 
       let weeks = proc;
       let fCont = document.getElementById('filterCont');
