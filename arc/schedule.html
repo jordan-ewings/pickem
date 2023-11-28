@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <style>
+    body {
+      font-size: 12pt !important;
+      color: #efefef !important;
+      background-color: #1e1e1e !important;
+    }
+
+    .text-dim {
+      color: #9b9b9b !important;
+    }
+
+    .text-smaller {
+      font-size: .75rem !important;
+    }
+
+    .bg-dim {
+      background-color: #181818 !important;
+    }
+
+    .bg-main {
+      background-color: #1e1e1e !important;
+    }
+
+    #tblGames .hide {
+      display: none !important;
+      height: 0 !important;
+      border: 0 !important;
+    }
+
+    #filterCont button.active {
+      color: #efefef !important;
+      opacity: 1 !important;
+      font-weight: 700 !important;
+    }
+  </style>
+</head>
+
+
+<body style="margin-bottom: 160px; margin-top:10px;">
+  <div class="container mx-auto px-0" style="max-width: 600px;">
+    <div class="mx-1">
+      <div id="filterCont" class="btn-group d-flex flex-nowrap overflow-x-scroll" role="group">
+        <!-- week buttons -->
+      </div>
+
+      <div class="d-flex flex-row my-3 px-1 align-items-center">
+        <div id="progGames" class="d-none w-75 ps-1 pe-3">
+          <div class="progress-stacked">
+            <div id="progPost" class="progress" role="progressbar" style="width: 0%">
+              <div class="progress-bar bg-primary"></div>
+            </div>
+            <div id="progIn" class="progress" role="progressbar" style="width: 0%">
+              <div class="progress-bar bg-danger"></div>
+            </div>
+            <div id="progPre" class="progress" role="progressbar" style="width: 0%">
+              <div class="progress-bar bg-dim"></div>
+            </div>
+          </div>
+        </div>
+        <button id="toggle-picks-btn" class="w-25 fw-semibold btn btn-sm btn-primary text-nowrap d-none" type="button" onclick="togglePicks()">Show Picks</button>
+      </div>
+    </div>
+    <div id="tblGames" class="mx-1">
+
+    </div>
+    <div id="view-loading" class="container text-center justify-content-center w-75">
+      <div class="d-flex column-gap-1 align-items-baseline justify-content-center">
+        <h5></h5>
+      </div>
+      <div class="progress">
+        <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 0%"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="modalFormContainer" tabindex="-1" aria-labelledby="modalFormContainerLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+      <div class="modal-content">
+        <div class="modal-header bg-main">
+          <h5 class="modal-title" id="modalFormContainerLabel">Change your pick</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body bg-main">
+          <form id="modalForm" action="https://script.google.com/macros/s/AKfycbxveY_vNT4LvlRThJQuaRszp9WmEXfKv376CgdNbRM1Gy5jWUjwGmxCo3Jv0fOpacpz/exec" method="POST">
+            <div id="modalFormBody" class="container">
+
+            </div>
+            <div class="modal-footer bg-main">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary">Change Pick</button>
+          </form>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="container text-smaller d-none">
+    <pre id="data" class=""></pre>
+  </div>
+  <script src="https://cdn.jsdelivr.net/gh/jordan-ewings/pickem@main/scripts/procSheet.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/jordan-ewings/pickem@main/scripts/procGamesResponses.js"></script>
+  <script>
+
+    sendData(refresh = false, devmode = false);
+
+    /* ------------------------------------------------ */
+
+    async function sendData(refresh, devmode) {
+
+      setLoadingBar(0);
+      setLoadingBar(33, 'Fetching games...');
+      const currweek = await getCurrentWeek();
+      const games = await getSheet('Games');
+
+      setLoadingBar(66, 'Fetching picks...');
+      const picks = await getSheet('Responses');
+
+      let data = procGamesResponses(games, picks);
+      if (refresh == true) {
+        setLoadingBar(100, 'Fetching live scores...');
+        const livedata = await fetchLive(currweek);
+        data = updateData(data, livedata);
+      } else {
+        setLoadingBar(100, 'Fetching scores...');
+      }
+      document.getElementById('view-loading').classList.add('d-none');
+
+      if (devmode == true) {
+        data = data.filter((x) => x.week == currweek);
+        document.getElementById("data").textContent = JSON.stringify(data, undefined, 2);
+        document.getElementById("data").parentElement.classList.remove('d-none');
+        return;
+      }
+
+      document.getElementById("data").textContent = JSON.stringify(data, undefined, 2);
+      makeWeekButtons(data);
+      buildRows(data);
+      filterTable(currweek);
+      document.getElementById("toggle-picks-btn").classList.remove('d-none');
+      document.getElementById("progGames").classList.remove('d-none');
+
+      setTimeout(() => {
+
+        addChangePickButton();
+      }, 1000)
+    }
+
+    // add button next to every pickrow element that shows modal with form to change a players pick
+    function addChangePickButton() {
+      let pickrows = document.querySelectorAll('.pickrow');
+      pickrows.forEach((pickrow) => {
+        let buttonDiv = document.createElement('div');
+        buttonDiv.classList.add('col-3', 'pe-1');
+        let changePickButton = document.createElement('button');
+        changePickButton.classList.add('btn', 'btn-sm', 'btn-primary');
+        changePickButton.textContent = 'Change Pick';
+        changePickButton.addEventListener('click', (e) => {
+          // populate form using copyGameRowContentsToFormBody
+          copyGameRowContentsToFormBody(e);
+          // show modal
+          let modal = new bootstrap.Modal(document.getElementById('modalFormContainer'), {
+            keyboard: false
+          });
+          modal.show();
+        });
+        buttonDiv.appendChild(changePickButton);
+        pickrow.appendChild(buttonDiv);
+      });
+    }
+
+    // when a pick-item is clicked, show modal with form to change pick
+    // first, function to copy gamerow content to the form body, wrapping each team in a radio button input
+    function copyGameRowContentsToFormBody(e) {
+      let tblrow = e.target.closest('.tblrow');
+      let gamerow = tblrow.querySelector('.gamerow');
+      let formbody = document.getElementById('modalFormBody');
+      formbody.innerHTML = '';
+      // add player select input
+      let playerSelect = document.createElement('select');
+      playerSelect.classList.add('form-select', 'form-select', 'mb-3', 'bg-main');
+      playerSelect.setAttribute('name', 'player');
+      playerSelect.setAttribute('id', 'player');
+      playerSelect.setAttribute('required', '');
+      playerSelect.innerHTML = '<option value="">Select player</option>';
+      let players = tblrow.querySelectorAll('.pickitem');
+      players.forEach((player) => {
+        let playerName = player.querySelector('span').textContent;
+        let playerOption = document.createElement('option');
+        playerOption.setAttribute('value', playerName);
+        playerOption.textContent = playerName;
+        playerSelect.appendChild(playerOption);
+      });
+
+      formbody.appendChild(playerSelect);
+
+      formbody.appendChild(gamerow.cloneNode(true));
+      // wrap each team in a radio button input
+
+      let teams = formbody.querySelectorAll('.teamrow');
+      teams.forEach((team) => {
+        let tempDiv = document.createElement('div');
+
+        let teamId = team.querySelector('span').textContent.split(' ').join('-');
+        // make label from teamrow
+        let label = document.createElement('label');
+        label.classList.add('btn', 'd-flex', 'align-items-center', 'justify-content-between', 'mb-1');
+        label.setAttribute('for', teamId);
+        label.innerHTML = team.innerHTML;
+
+        // convert teamrow to input
+        let input = document.createElement('input');
+        input.classList.add('btn-check');
+        input.setAttribute('type', 'radio');
+        input.setAttribute('name', 'pick');
+        input.setAttribute('id', teamId);
+        input.setAttribute('value', team.querySelector('span').textContent);
+        // append input to label
+
+        tempDiv.appendChild(input);
+        tempDiv.appendChild(label);
+        team.replaceWith(tempDiv);
+
+      });
+    }
+
+    function handleFormSubmit(event) {
+      event.preventDefault(); // Prevents the default form submission behavior
+
+      // Get form data
+      const form = event.target;
+      const formData = new FormData(form);
+      // convert formData to url-encoded string
+      let urlEncodedData = "";
+      for (let pair of formData.entries()) {
+        urlEncodedData += encodeURIComponent(pair[0]) + '=' + encodeURIComponent(pair[1]) + '&';
+      }
+      // remove trailing ampersand
+      urlEncodedData = urlEncodedData.substring(0, urlEncodedData.length - 1);
+      // append url-encoded string to form action url
+      form.action = form.action + '?' + urlEncodedData;
+
+
+
+      // Fetch the action URL with form data
+      fetch(form.action, {
+        method: form.method
+      })
+        .then(response => {
+          // Handle the response (if needed)
+          console.log('Form submitted successfully!', response);
+        })
+        .catch(error => {
+          // Handle any errors
+          console.error('Form submission error:', error);
+        });
+    }
+
+
+    /* ------------------------------------------------ */
+
+    function buildRows(data) {
+
+      // const proc = JSON.parse(document.getElementById('data').textContent);
+      const proc = data;
+
+      let rowdata = proc.map((w) => {
+        let rows = new El('div').addClass('week-games').addId('week-games-' + w.week);
+        let days = w.games.map((x) => x.gameday_long);
+        days = days.filter((c, index) => days.indexOf(c) === index);
+        days.forEach((d) => {
+          rows.addChild(new El('div')
+            .addChild(new El('h6').addClass('text-center fw-semibold pt-3 pb-3 mb-0 mt-0 bg-main').addChild(d))
+          );
+
+          let games = w.games.filter((x) => x.gameday_long == d);
+          games.forEach((g) => rows.addChild(make_tblrow(g)));
+        });
+        return { week: w.week, games: rows.html() };
+      });
+
+      let rowSet = rowdata.map((x) => x['games']);
+      let rows = [].concat(...rowSet).join('');
+      document.getElementById("tblGames").innerHTML = rows;
+
+    }
+
+    /* ------------------------------------------------ */
+
+    function make_tblrow(g) {
+
+      let game = make_gamerow_input(g);
+      let picks = make_pickrow_input(g);
+      let tblrow = new El('div').addClass('tblrow game-' + g.state);
+
+      let gamerow = new El('div').addClass('gamerow row align-items-start pt-2 py-3 mx-0').addStyle('border-top:2px dotted #2f2f2f;');
+      gamerow.addChild(new El('div').addClass('col-9 ps-2').addStyle('border-right: 1px solid #2f2f2f;')
+        .addChild(new El('div').addClass('d-flex flex-column row-gap-1')
+          .addChildren(['away', 'home'].map((team) => {
+            return new El('div').addClass('teamrow d-flex align-items-center')
+              .addChild(game[team].logo.addClass('object-fit-contain').addStyle('height:1.2rem;width:1.2rem;'))
+              .addChild(game[team].name.addClass('ps-2 fw-semibold'))
+              .addChild(game[team].poss.addClass('object-fit-contain ps-2'))
+              .addChild(game[team].score.addClass('ms-auto'))
+          })
+          )
+        )
+      );
+      gamerow.addChild(new El('div').addClass('col-3 pe-1')
+        .addChild(new El('div').addClass('d-flex flex-column justify-content-center text-smaller')
+          .addChild(game.stat1.addClass('text-dim fw-semibold'))
+          .addChild(game.stat2.addClass('text-dim fw-semibold'))
+          .addChild(game.stat3.addClass('text-dim fw-normal'))
+          .addChild(game.odds.addClass('text-dim fw-normal'))
+        )
+      );
+
+      let pickrow = new El('div').addClass('pickrow row align-items-center pt-0 pb-0 mx-0');
+      if (picks.length > 0) {
+        pickrow.addChild(new El('div').addClass('col-9 ps-1 pe-0 mb-3')
+          .addChild(new El('div').addClass('row row-cols-3 rounded-end-3 bg-dim mx-0 ps-2 pe-1 py-1').addStyle('border-left: 4px solid #0e0e0e')
+            .addChildren(picks.map((pick) => {
+              return new El('div').addClass('col px-1')
+                .addChild(new El('div').addClass('pickitem d-flex align-items-center py-1')
+                  .addChild(pick.logo.addClass('object-fit-contain').addStyle('height:16px;width:16px;'))
+                  .addChild(pick.name.addClass('ps-1 small'))
+                )
+            })
+            )
+          )
+        );
+
+        let pickrow_id = 'picks-' + g.game_id;
+        pickrow_id = pickrow_id.replace('_', '-');
+        let gamerow_alt = new El('a').addStyle('color:inherit;text-decoration:none;')
+          .addChild(gamerow).html().replace('<a', '<a role="button" data-bs-toggle="collapse" data-bs-target="#' + pickrow_id + '"');
+        pickrow.addClass('collapse').addId(pickrow_id);
+
+        tblrow
+          .addChild(gamerow_alt)
+          .addChild(pickrow);
+        // .addChild(new El('div').addClass('row mx-0 px-0').addStyle('height:1rem'));
+      } else {
+        tblrow.addChild(gamerow);
+      }
+
+      let gameid = g.game_id;
+      let gameweek = parseInt(gameid.split('_')[1]).toFixed(0);
+      let data_formname = 'Week ' + gameweek;
+      if (g.gameday.split(' ')[0] == 'Thu') data_formname += ' TNF';
+      let data_formquestion = gameid.split('_')[2] + ' @ ' + gameid.split('_')[3];
+      let data_formchoice1 = g.away_teamfull;
+      let data_formchoice2 = g.home_teamfull;
+      let tblrow_html = tblrow.html()
+        .replace('<div', '<div data-gameid="' + gameid + '"')
+        .replace('<div', '<div data-formname="' + data_formname + '"')
+        .replace('<div', '<div data-formquestion="' + data_formquestion + '"')
+        .replace('<div', '<div data-formchoice1="' + data_formchoice1 + '"')
+        .replace('<div', '<div data-formchoice2="' + data_formchoice2 + '"');
+
+      return tblrow_html;
+    }
+
+    /* ------------------------------------------------ */
+
+    function make_gamerow_input(g) {
+      let state = g.state;
+      let status = g.stateshort;
+      let gdate = g.gameday;
+      let gtime = g.gametime;
+      let odds = g.spread;
+      let win_team = g.win_team;
+      let responses = [];
+      if (g.responses) responses = g.responses;
+      let info = {};
+
+      ['away', 'home'].forEach((t) => {
+        let f_win = g[t + '_team'] == win_team;
+        let name = g[t + '_teamshort'];
+        let logo = g[t + '_logo'];
+        let score = g[t + '_score'];
+        let record = g[t + '_record'];
+
+        let elogo = new El('img').addSrc(logo);
+        let ename = new El('span');
+        if (state == 'post' && !f_win) ename.addClass('opacity-25');
+        ename.addChild(name);
+        let eposs = new El('i');
+        if (g[t + '_poss']) {
+          if (g[t + '_poss'] == '1') {
+            eposs.addClass("fa-solid fa-football fa-sm").addStyle("color: #79552e;");
+          }
+        }
+
+        let escore = new El('span');
+        if (state == 'pre') {
+          escore.addChild(record).addClass('text-dim text-smaller');
+        } else {
+          escore.addChild(score).addClass('fw-semibold');
+          if (state == 'post' && !f_win) {
+            escore.addClass('opacity-25');
+          }
+        }
+
+        info[t] = { logo: elogo, name: ename, poss: eposs, score: escore }
+      });
+
+      let eodds = new El('span').addChild(odds);
+      let estat1 = new El('span');
+      let estat2 = new El('span');
+      let estat3 = new El('span');
+      if (state == 'post') {
+        estat1.addChild(status);
+      } else if (state == 'in') {
+        estat1.addChild(status).addStyle('color:#ff5c5c!important;');
+        if (g.poss_dd) estat2.addChild(g.poss_dd);
+        if (g.poss_loc) estat3.addChild(g.poss_loc);
+        eodds.addClass('d-none');
+      } else if (state == 'pre') {
+        estat1.addChild(gdate)
+        estat2.addChild(gtime)
+      }
+
+      info.stat1 = estat1;
+      info.stat2 = estat2;
+      info.stat3 = estat3;
+      info.odds = eodds;
+
+      return info;
+    }
+
+    /* ------------------------------------------------ */
+
+    function make_pickrow_input(g) {
+
+      if (!g.responses) return [];
+
+      let winner = g.win_team;
+      let state = g.state;
+
+      let info = g.responses.map((p) => {
+        let status = p.status;
+        let pick = p.pick_team;
+        let player = p.player;
+        let logo = p.pick_logo;
+
+        let elogo = new El('img').addSrc(logo);
+        if (pick == '' || status != 'OK') elogo = new El('i');
+        let ename = new El('span').addChild(player);
+
+        if (state != 'post') {
+          if (pick == '' || status != 'OK') {
+            elogo.addClass('opacity-25');
+            ename.addClass('opacity-25');
+          }
+        } else {
+          if (status != 'OK' || pick != winner) {
+            elogo.addClass('opacity-25');
+            ename.addClass('opacity-25');
+          }
+        }
+        return { logo: elogo, name: ename };
+      });
+
+      return info;
+    }
+
+    /* ------------------------------------------------ */
+
+    function makeWeekButtons(data) {
+
+      // const proc = JSON.parse(document.getElementById('data').textContent);
+      const proc = data;
+
+      let weeks = proc;
+      let fCont = document.getElementById('filterCont');
+      weeks.forEach((wdata) => {
+        let w = wdata.week;
+        let wlab = wdata.week_label;
+        if (!document.getElementById('btn' + w)) {
+          let btn = document.createElement('button');
+          btn.type = 'button';
+          btn.setAttribute('onclick', `filterTable(${w})`);
+          btn.classList.add('btn', 'text-dim', 'opacity-50', 'fw-medium', 'text-nowrap', 'rounded-2');
+          btn.style.borderColor = 'transparent';
+          btn.innerHTML = `${wlab}`;
+          btn.id = 'btn' + w;
+          fCont.appendChild(btn);
+        }
+      });
+    }
+
+    function filterTable(week) {
+
+      let togglebtn = document.getElementById('toggle-picks-btn');
+      let is_enabled = togglebtn.classList.contains('disabled') == false;
+      let picks_on = togglebtn.innerHTML.includes('Hide');
+
+      let tbl = document.getElementById('tblGames');
+      let weeks = tbl.getElementsByClassName('week-games');
+      let num_games;
+      let num_pre;
+      let num_in;
+      let num_post;
+
+
+      for (let i = 0; i < weeks.length; i++) {
+        let wdiv = weeks.item(i);
+        let rweek = wdiv.id.replace('week-games-', '');
+        let is_week = rweek == week;
+        let is_shown = wdiv.classList.contains('hide') == false;
+        if (is_week && !is_shown) wdiv.classList.remove('hide');
+        if (!is_week && is_shown) wdiv.classList.add('hide');
+
+        if (is_week) {
+          num_games = wdiv.getElementsByClassName('tblrow').length;
+          num_pre = wdiv.getElementsByClassName('game-pre').length;
+          num_in = wdiv.getElementsByClassName('game-in').length;
+          num_post = wdiv.getElementsByClassName('game-post').length;
+        }
+      }
+
+      if (num_games > 0) {
+        let pc_pre = Math.round(100 * (num_pre / num_games));
+        let pc_in = Math.round(100 * (num_in / num_games));
+        let pc_post = Math.round(100 * (num_post / num_games));
+        let pc_offset = 100 - (pc_pre + pc_in + pc_post);
+        pc_pre = pc_pre + pc_offset;
+        document.getElementById('progPre').style.width = pc_pre.toString() + '%';
+        document.getElementById('progIn').style.width = pc_in.toString() + '%';
+        document.getElementById('progPost').style.width = pc_post.toString() + '%';
+      }
+
+      let fCont = document.getElementById('filterCont');
+      let btns = fCont.getElementsByClassName('btn');
+      for (let j = 0; j < btns.length; j++) {
+        btns[j].classList.remove('active');
+      }
+
+      let currbtn = document.getElementById('btn' + week);
+      currbtn.classList.add('active');
+      currbtn.scrollIntoView({ behavior: "smooth", block: "end", inline: "center" });
+    }
+
+    /* ------------------------------------------------ */
+
+    function togglePicks() {
+
+      let btn = document.getElementById('toggle-picks-btn');
+      let picks_on = btn.innerHTML.includes('Hide') == true;
+      if (picks_on == true) btn.innerHTML = 'Show Picks';
+      if (picks_on == false) btn.innerHTML = 'Hide Picks';
+
+      let tbl = document.getElementById('tblGames');
+      let rows = tbl.getElementsByClassName('pickrow');
+      for (let i = 0; i < rows.length; i++) {
+        let row = rows.item(i);
+        let is_shown = row.classList.contains('show') == true;
+        // let rowBS = new bootstrap.Collapse(row);
+        if (!picks_on) {
+          if (!is_shown) row.classList.add('show');
+          // if (!is_shown) rowBS.show();
+        } else {
+          if (is_shown) row.classList.remove('show');
+          // if (is_shown) rowBS.hide();
+        }
+      }
+    }
+
+
+    /* ------------------------------------------------ */
+
+    async function fetchLive(week) {
+
+      console.log('FETCHING LIVE');
+      const resp = await fetch('https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard?seasontype=2&dates=2023&week=' + week);
+      const raw = await resp.text();
+      const events = JSON.parse(raw)['events'];
+
+      const proc = events.map((game) => {
+
+        let comp = game.competitions[0];
+        let hid = comp.competitors[0].id;
+        let aid = comp.competitors[1].id;
+
+        let data = {};
+        data.game_id = game.id;
+        data.week = game.week.number;
+        data.home_score = game.competitions[0].competitors[0].score;
+        data.away_score = game.competitions[0].competitors[1].score;
+        data.state = game.status.type.state;
+        data.stateshort = game.status.type.shortDetail;
+        data.home_poss = '0';
+        data.away_poss = '0';
+
+        if (comp.situation) {
+          if (comp.situation.possession) {
+            let pid = comp.situation.possession;
+            if (pid == hid) data.home_poss = '1';
+            if (pid == aid) data.away_poss = '1';
+            data.poss_loc = comp.situation.possessionText;
+            data.poss_dd = comp.situation.shortDownDistanceText;
+          }
+        }
+
+        return data;
+      });
+
+      console.log(proc);
+      return proc;
+    }
+
+    /* ------------------------------------------------ */
+
+    function updateData(proc, live) {
+      console.log('UPDATING LIVE');
+      let week = live[0].week.toString();
+      let data = proc.map((w) => {
+        if (w.week == week) {
+          w.games = w.games.map((game) => {
+            let g = game;
+            let glive = live.filter((x) => x.game_id == g.game_id)[0];
+            console.log(g);
+            console.log(glive);
+            g.away_score = glive.away_score;
+            g.home_score = glive.home_score;
+            g.state = glive.state;
+            g.stateshort = glive.stateshort;
+            g.away_poss = glive.away_poss;
+            g.home_poss = glive.home_poss;
+            g.poss_loc = glive.poss_loc;
+            g.poss_dd = glive.poss_dd;
+            let ascore = parseInt(glive.away_score);
+            let hscore = parseInt(glive.home_score);
+
+            if (g.state == 'post') {
+              if (ascore > hscore) {
+                g.win_team = g.away_team;
+              } else if (hscore > ascore) {
+                g.win_team = g.home_team;
+              } else {
+                g.win_team = 'TIE';
+              }
+            }
+            return g;
+          });
+        }
+        return w;
+      });
+
+      console.log(data);
+      return data;
+    }
+
+    /* ------------------------------------------------ */
+
+    function setLoadingBar(value, task, close = false) {
+      const div = document.getElementById('view-loading');
+      const bar = div.querySelector('.progress-bar');
+      const text = div.querySelector('h5');
+      if (value) bar.style.width = value + '%';
+      if (task) text.innerHTML = task;
+    }
+
+    /* ------------------------------------------------ */
+
+    async function getCurrentWeek() {
+      let info = await getSheet('SeasonInfo');
+      let currweek = info.filter((x) => x.current == '1')[0]['week'];
+      return currweek;
+    }
+
+    /* ------------------------------------------------ */
+
+    async function getSheet(sheet) {
+      const shname = sheet.split(' ').join('+');
+      const resp = await fetch('https://docs.google.com/spreadsheets/d/14ZYopWScY-nkBJ4Eq7DpLqRw6s2Fre3EWYkKsCIc8lU/gviz/tq?tqx=out:json&tq&sheet=' + shname);
+      const raw = await resp.text();
+      const data = procSheet(raw);
+
+      return data;
+    }
+
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous">
+  </script>
+</body>
+
+</html>

@@ -43,14 +43,6 @@ function procSheet(raw) {
   return data;
 }
 
-async function getSheet(sheet) {
-  const shname = sheet.split(' ').join('+');
-  const resp = await fetch('https://docs.google.com/spreadsheets/d/14ZYopWScY-nkBJ4Eq7DpLqRw6s2Fre3EWYkKsCIc8lU/gviz/tq?tqx=out:json&tq&sheet=' + shname);
-  const raw = await resp.text();
-  const data = procSheet(raw);
-  return data;
-}
-
 /* ------------------------------------------------ */
 
 class El {
@@ -66,10 +58,10 @@ class El {
     this.data = {};
   }
 
-  addAttribute(k, v) {
-    this.data[k] = v;
-    return this;
-  }
+  // addData(k, v) {
+  //   this.data[k] = v;
+  //   return this;
+  // }
 
   addId(i) {
     this.id = i;
@@ -113,7 +105,6 @@ class El {
     return this;
   }
 
-
   html() {
     let v = `<${this.tag}`;
     if (this.id != '') v += ` id="${this.id}"`;
@@ -121,15 +112,14 @@ class El {
     if (this.styles != '') v += ` style="${this.styles}"`;
     if (this.onclick != '') v += ` onclick="${this.onclick}"`;
     if (this.src != '') v += ` src="${this.src}"`;
-    let data = this.data;
-    let dataKeys = Object.keys(data);
-    for (let i = 0; i < dataKeys.length; i++) {
-      v += ` ${dataKeys[i]}="${data[dataKeys[i]]}"`;
-    }
+    // for (k in this.data) {
+    //   v += ` data-${k}="${this.data[k]}"`;
+    // }
 
     v += `>`;
     if (this.inner != '') v += `${this.inner}`;
     v += `</${this.tag}>`;
     return v;
   }
+
 }

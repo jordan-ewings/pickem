@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-bs-theme="dark">
+<html lang="en" data-bs-theme="dark" style="height: fit-content;">
 
 <head>
   <meta charset="utf-8">
@@ -11,16 +11,16 @@
       display: none;
     }
 
-    /* html {
+    body {
       height: fit-content;
-      overflow:hidden;
-    } */
+    }
+
     body,
     td {
       font-size: 11pt !important;
       color: #efefef !important;
       background-color: #1e1e1e !important;
-      pointer-events: none;
+      /* pointer-events: none; */
     }
 
     .text-dim {
@@ -57,16 +57,32 @@
     </div>
   </div>
 
+
   <div class="container d-none">
     <pre id="data" class="">NO DATA</pre>
   </div>
+  <!-- <div>
+    <p id='pinfo'></p>
+  </div> -->
+
   <script>
 
     sendData();
     // let frame = parent.document.getElementById('userHtmlFrame')
+    // // parent.document.body.style.setProperty('-webkit-scrollbar', )
+    // let pheight = document.querySelector('html').clientHeight.toString();
+    // frame.style.height = pheight + 'px';
     // let frame = parent.document.getElementsByTagName('iframe').item(0);
+    // setTimeout()
+    // let pheight = document.body.querySelector('table').clientHeight; 
+    // let pheight = document.querySelector('html').clientHeight;
+    // document.getElementById('pinfo').innerHTML = pheight;
+
     // frame.setAttribute('scrolling', 'no');
-    // frame.style.overflow = 'hidden';
+    // frame.style.pointerEvents = 'none';
+    // frame.style.overflow = 'visible';
+    // frame.style.overscrollBehavior = 'contain'
+
 
     /* ------------------------------------------------ */
 
@@ -140,7 +156,13 @@
 
     /* ------------------------------------------------ */
 
-
+    async function getSheet(sheet) {
+      const shname = sheet.split(' ').join('+');
+      const resp = await fetch('https://docs.google.com/spreadsheets/d/14ZYopWScY-nkBJ4Eq7DpLqRw6s2Fre3EWYkKsCIc8lU/gviz/tq?tqx=out:json&tq&sheet=' + shname);
+      const raw = await resp.text();
+      const data = procSheet(raw);
+      return data;
+    }
 
   </script>
   <script src="https://cdn.jsdelivr.net/gh/jordan-ewings/pickem@main/scripts/base.js"></script>

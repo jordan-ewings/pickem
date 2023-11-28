@@ -43,14 +43,6 @@ function procSheet(raw) {
   return data;
 }
 
-async function getSheet(sheet) {
-  const shname = sheet.split(' ').join('+');
-  const resp = await fetch('https://docs.google.com/spreadsheets/d/14ZYopWScY-nkBJ4Eq7DpLqRw6s2Fre3EWYkKsCIc8lU/gviz/tq?tqx=out:json&tq&sheet=' + shname);
-  const raw = await resp.text();
-  const data = procSheet(raw);
-  return data;
-}
-
 /* ------------------------------------------------ */
 
 class El {

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
+  <style>
+    body {
+      font-size: 11pt !important;
+      color: #efefef !important;
+      background-color: #1e1e1e !important;
+    }
+
+    .text-dim {
+      color: #9b9b9b !important;
+    }
+
+    .text-smaller {
+      font-size: .75rem !important;
+    }
+
+    .text-tiny {
+      font-size: .7rem !important;
+    }
+
+    .bg-dim {
+      background-color: #181818 !important;
+    }
+
+    .bg-main {
+      background-color: #1e1e1e !important;
+    }
+  </style>
+</head>
+
+<body class="m-0">
+
+  <div class="d-flex flex-column justify-content-center align-items-center">
+    <div id="fname" class="fs-2 fw-bold"></div>
+    <div id="fexp" class="text-dim fs-6"></div>
+  </div>
+
+  <div class="container d-none">
+    <pre id="data" class="rounded-2 p-1">NO DATA</pre>
+  </div>
+
+  <script>
+
+    var formType = "WEEKEND"
+    sendData();
+
+    async function sendData() {
+      const data = await getSheet('Info');
+
+      document.getElementById("data").textContent = JSON.stringify(data, undefined, 2);
+
+
+      sendDataStore();
+      setInterval(sendDataStore, 1000);
+    }
+
+    function sendDataStore() {
+      let data = JSON.parse(document.getElementById('data').textContent);
+      let fid = 1;
+      if (formType != 'TNF') fid = 0;
+      data.reverse();
+      let info = data[fid];
+      let rem = calcDiff(info);
+      document.getElementById("fname").innerHTML = info.Form;
+      document.getElementById("fexp").innerHTML = rem;
+    }
+
+    function calcDiff(info) {
+
+      let now = new Date();
+      let start = new Date(info.DL);
+      let expires = new Date(info.DLall);
+      if (now > start) {
+        if (now > expires) return 'Expired';
+        if (info.Status.includes('game')) return info.Status;
+        return 'Games Started';
+      }
+
+      let rem = Math.abs(start - now) / (1000);
+
+      let remD = Math.floor(rem / (60 * 60 * 24));
+      let rem2 = rem - remD * 60 * 60 * 24;
+      let remH = Math.floor(rem2 / (60 * 60));
+      let rem3 = rem2 - remH * 60 * 60;
+      let remM = Math.floor(rem3 / 60);
+      let rem4 = rem3 - remM * 60;
+      let remS = Math.floor(rem4);
+
+      let vshow = {};
+      let eColor = '';
+      if (remD != 0) {
+        vshow.M = 'd-none';
+        vshow.S = 'd-none';
+        eColor += 'text-dim';
+      } else if (remD == 0 && remH != 0) {
+        vshow.D = 'd-none';
+        vshow.S = 'd-none';
+        eColor += 'text-primary-emphasis';
+      } else if (remD == 0 && remH == 0 && remM != 0) {
+        vshow.D = 'd-none';
+        vshow.H = 'd-none';
+        eColor += 'text-danger-emphasis';
+      } else if (remD == 0 && remH == 0 && remM == 0 && remS != 0) {
+        vshow.D = 'd-none';
+        vshow.H = 'd-none';
+        vshow.M = 'd-none';
+        eColor += 'text-danger';
+      }
+
+
+      let durClass = 'text-smaller opacity-75 fw-light';
+      let elab = new El('div').addClass('d-flex flex-row column-gap-1 align-items-center');
+
+      let eD = new El('div').addClass(vshow.D).addClass(eColor)
+        .addChild(new El('span').addClass('pe-1').addChild(remD.toString()))
+        .addChild(new El('span').addClass(durClass).addChild((remD.toString() == 1) ? 'DAY' : 'DAYS'));
+      let eH = new El('div').addClass(vshow.H).addClass(eColor)
+        .addChild(new El('span').addClass('pe-1').addChild(remH.toString()))
+        .addChild(new El('span').addClass(durClass).addChild((remH.toString() == 1) ? 'HOUR' : 'HOURS'));
+      let eM = new El('div').addClass(vshow.M).addClass(eColor)
+        .addChild(new El('span').addClass('pe-1').addChild(remM.toString()))
+        .addChild(new El('span').addClass(durClass).addChild('MIN'));
+      let eS = new El('div').addClass(vshow.S).addClass(eColor)
+        .addChild(new El('span').addClass('pe-1').addChild(remS.toString()))
+        .addChild(new El('span').addClass(durClass).addChild('SEC'));
+
+
+
+      elab
+        .addChild(eD)
+        .addChild(eH)
+        .addChild(eM)
+        .addChild(eS);
+
+      return elab.html();
+    }
+
+
+    /* ------------------------------------------------ */
+
+    async function getSheet(sheet) {
+      const shname = sheet.split(' ').join('+');
+      const resp = await fetch('https://docs.google.com/spreadsheets/d/14ZYopWScY-nkBJ4Eq7DpLqRw6s2Fre3EWYkKsCIc8lU/gviz/tq?tqx=out:json&tq&sheet=' + shname);
+      const raw = await resp.text();
+      const data = procSheet(raw);
+      return data;
+    }
+
+  </script>
+  <script src="https://cdn.jsdelivr.net/gh/jordan-ewings/pickem@main/scripts/base.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous">
+  </script>
+</body>
+
+</html>
