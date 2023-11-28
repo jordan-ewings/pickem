@@ -57,13 +57,6 @@ class El {
     this.src = '';
     this.inner = '';
     this.id = '';
-    this.onclick = '';
-    this.data = {};
-  }
-
-  addAttribute(k, v) {
-    this.data[k] = v;
-    return this;
   }
 
   addId(i) {
@@ -114,13 +107,7 @@ class El {
     if (this.id != '') v += ` id="${this.id}"`;
     if (this.classes != '') v += ` class="${this.classes}"`;
     if (this.styles != '') v += ` style="${this.styles}"`;
-    if (this.onclick != '') v += ` onclick="${this.onclick}"`;
     if (this.src != '') v += ` src="${this.src}"`;
-    let data = this.data;
-    let dataKeys = Object.keys(data);
-    for (let i = 0; i < dataKeys.length; i++) {
-      v += ` ${dataKeys[i]}="${data[dataKeys[i]]}"`;
-    }
 
     v += `>`;
     if (this.inner != '') v += `${this.inner}`;

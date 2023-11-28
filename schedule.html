@@ -108,7 +108,7 @@
   <div class="container text-smaller d-none">
     <pre id="data" class=""></pre>
   </div>
-  <script src="https://cdn.jsdelivr.net/gh/jordan-ewings/pickem@main/scripts/procSheet.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/jordan-ewings/pickem/scripts/base.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/jordan-ewings/pickem@main/scripts/procGamesResponses.js"></script>
   <script>
 
@@ -294,6 +294,29 @@
       document.getElementById("tblGames").innerHTML = rows;
 
     }
+
+    /* ------------------------------------------------ */
+
+    // function to convert El object to DOM element
+    function elToDOM(elObj) {
+      let el = document.createElement(elObj.tag);
+      if (elObj.id) el.id = elObj.id;
+      if (elObj.classes) el.classList.add(...elObj.classes);
+      if (elObj.styles) el.style.cssText = elObj.styles;
+      if (elObj.attributes) {
+        for (let [key, value] of Object.entries(elObj.attributes)) {
+          el.setAttribute(key, value);
+        }
+      }
+      if (elObj.children) {
+        elObj.children.forEach((child) => {
+          el.appendChild(elToDOM(child));
+        });
+      }
+      if (elObj.html) el.innerHTML = elObj.html;
+      return el;
+    }
+
 
     /* ------------------------------------------------ */
 
