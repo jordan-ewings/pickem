@@ -58,7 +58,7 @@ class El {
     this.data = {};
   }
 
-  addData(k, v) {
+  addAttribute(k, v) {
     this.data[k] = v;
     return this;
   }
@@ -105,6 +105,7 @@ class El {
     return this;
   }
 
+
   html() {
     let v = `<${this.tag}`;
     if (this.id != '') v += ` id="${this.id}"`;
@@ -115,7 +116,7 @@ class El {
     let data = this.data;
     let dataKeys = Object.keys(data);
     for (let i = 0; i < dataKeys.length; i++) {
-      v += ` data-${dataKeys[i]}="${data[dataKeys[i]]}"`;
+      v += ` ${dataKeys[i]}="${data[dataKeys[i]]}"`;
     }
 
     v += `>`;

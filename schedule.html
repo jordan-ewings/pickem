@@ -83,6 +83,27 @@
     </div>
   </div>
 
+  <div class="modal fade" id="modalFormContainer" tabindex="-1" aria-labelledby="modalFormContainerLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+      <div class="modal-content">
+        <div class="modal-header bg-main">
+          <h5 class="modal-title" id="modalFormContainerLabel">Change your pick</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body bg-main">
+          <form id="modalForm" action="https://script.google.com/macros/s/AKfycbxveY_vNT4LvlRThJQuaRszp9WmEXfKv376CgdNbRM1Gy5jWUjwGmxCo3Jv0fOpacpz/exec" method="POST">
+            <div id="modalFormBody" class="container">
+
+            </div>
+            <div class="modal-footer bg-main">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary">Change Pick</button>
+          </form>
+        </div>
+
+      </div>
+    </div>
+  </div>
 
   <div class="container text-smaller d-none">
     <pre id="data" class=""></pre>
@@ -128,7 +149,123 @@
       filterTable(currweek);
       document.getElementById("toggle-picks-btn").classList.remove('d-none');
       document.getElementById("progGames").classList.remove('d-none');
+
+      setTimeout(() => {
+
+        addChangePickButton();
+      }, 1000)
     }
+
+    // add button next to every pickrow element that shows modal with form to change a players pick
+    function addChangePickButton() {
+      let pickrows = document.querySelectorAll('.pickrow');
+      pickrows.forEach((pickrow) => {
+        let buttonDiv = document.createElement('div');
+        buttonDiv.classList.add('col-3', 'pe-1');
+        let changePickButton = document.createElement('button');
+        changePickButton.classList.add('btn', 'btn-sm', 'btn-primary');
+        changePickButton.textContent = 'Change Pick';
+        changePickButton.addEventListener('click', (e) => {
+          // populate form using copyGameRowContentsToFormBody
+          copyGameRowContentsToFormBody(e);
+          // show modal
+          let modal = new bootstrap.Modal(document.getElementById('modalFormContainer'), {
+            keyboard: false
+          });
+          modal.show();
+        });
+        buttonDiv.appendChild(changePickButton);
+        pickrow.appendChild(buttonDiv);
+      });
+    }
+
+    // when a pick-item is clicked, show modal with form to change pick
+    // first, function to copy gamerow content to the form body, wrapping each team in a radio button input
+    function copyGameRowContentsToFormBody(e) {
+      let tblrow = e.target.closest('.tblrow');
+      let gamerow = tblrow.querySelector('.gamerow');
+      let formbody = document.getElementById('modalFormBody');
+      formbody.innerHTML = '';
+      // add player select input
+      let playerSelect = document.createElement('select');
+      playerSelect.classList.add('form-select', 'form-select', 'mb-3', 'bg-main');
+      playerSelect.setAttribute('name', 'player');
+      playerSelect.setAttribute('id', 'player');
+      playerSelect.setAttribute('required', '');
+      playerSelect.innerHTML = '<option value="">Select player</option>';
+      let players = tblrow.querySelectorAll('.pickitem');
+      players.forEach((player) => {
+        let playerName = player.querySelector('span').textContent;
+        let playerOption = document.createElement('option');
+        playerOption.setAttribute('value', playerName);
+        playerOption.textContent = playerName;
+        playerSelect.appendChild(playerOption);
+      });
+
+      formbody.appendChild(playerSelect);
+
+      formbody.appendChild(gamerow.cloneNode(true));
+      // wrap each team in a radio button input
+
+      let teams = formbody.querySelectorAll('.teamrow');
+      teams.forEach((team) => {
+        let tempDiv = document.createElement('div');
+
+        let teamId = team.querySelector('span').textContent.split(' ').join('-');
+        // make label from teamrow
+        let label = document.createElement('label');
+        label.classList.add('btn', 'd-flex', 'align-items-center', 'justify-content-between', 'mb-1');
+        label.setAttribute('for', teamId);
+        label.innerHTML = team.innerHTML;
+
+        // convert teamrow to input
+        let input = document.createElement('input');
+        input.classList.add('btn-check');
+        input.setAttribute('type', 'radio');
+        input.setAttribute('name', 'pick');
+        input.setAttribute('id', teamId);
+        input.setAttribute('value', team.querySelector('span').textContent);
+        // append input to label
+
+        tempDiv.appendChild(input);
+        tempDiv.appendChild(label);
+        team.replaceWith(tempDiv);
+
+      });
+    }
+
+    function handleFormSubmit(event) {
+      event.preventDefault(); // Prevents the default form submission behavior
+
+      // Get form data
+      const form = event.target;
+      const formData = new FormData(form);
+      // convert formData to url-encoded string
+      let urlEncodedData = "";
+      for (let pair of formData.entries()) {
+        urlEncodedData += encodeURIComponent(pair[0]) + '=' + encodeURIComponent(pair[1]) + '&';
+      }
+      // remove trailing ampersand
+      urlEncodedData = urlEncodedData.substring(0, urlEncodedData.length - 1);
+      // append url-encoded string to form action url
+      form.action = form.action + '?' + urlEncodedData;
+
+
+
+      // Fetch the action URL with form data
+      fetch(form.action, {
+        method: form.method
+      })
+        .then(response => {
+          // Handle the response (if needed)
+          console.log('Form submitted successfully!', response);
+        })
+        .catch(error => {
+          // Handle any errors
+          console.error('Form submission error:', error);
+        });
+    }
+
 
     /* ------------------------------------------------ */
 
@@ -170,7 +307,7 @@
       gamerow.addChild(new El('div').addClass('col-9 ps-2').addStyle('border-right: 1px solid #2f2f2f;')
         .addChild(new El('div').addClass('d-flex flex-column row-gap-1')
           .addChildren(['away', 'home'].map((team) => {
-            return new El('div').addClass('d-flex align-items-center')
+            return new El('div').addClass('teamrow d-flex align-items-center')
               .addChild(game[team].logo.addClass('object-fit-contain').addStyle('height:1.2rem;width:1.2rem;'))
               .addChild(game[team].name.addClass('ps-2 fw-semibold'))
               .addChild(game[team].poss.addClass('object-fit-contain ps-2'))

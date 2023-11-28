@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+  <style>
+    body {
+      font-size: 11pt !important;
+      color: #efefef !important;
+      background-color: #1e1e1e !important;
+    }
+
+    .game-prop {
+      background-color: #272727 !important;
+      border-color: #545454 !important;
+      color: #efefef !important;
+    }
+
+    .bg-main {
+      background-color: #1e1e1e !important;
+    }
+  </style>
+</head>
+
+<body class="m-0">
+  <div class="container mx-auto px-0 justify-content-center" style="max-width: 600px;">
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">Open Form</button>
+    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+        <div class="modal-content bg-main">
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">Pick'em Form</h5>
+            <button type="button" class="btn-close bg-main" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <iframe id="form-container" class="container" src="https://jordan-ewings.github.io/pickem/form.html" style="width: 100%; border: none;"></iframe>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary bg-main" data-bs-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+
+      /* ------------------------------------------------ */
+      // getPage();
+      // async function getPage() {
+      //   // const resp = await fetch('https://jordan-ewings.github.io/pickem/form.html');
+      //   const raw = await resp.text();
+
+      //   // const html = new DOMParser().parseFromString(raw, 'text/html');
+      //   document.getElementById('form-container').innerHTML = html;
+      //   // return data;
+      // }
+
+    </script>
+    <script src="https://cdn.jsdelivr.net/gh/jordan-ewings/pickem@main/scripts/base.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous">
+    </script>
+</body>
+
+</html>
