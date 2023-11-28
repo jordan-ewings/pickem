@@ -201,7 +201,7 @@
       formbody.appendChild(gamerow.cloneNode(true));
       let game = formbody.querySelector('.gamerow')
       let question = game.getAttribute('data-gameid');
-      let gametime = new Date(game.getAttribute('data-gametime'));
+      let gametime = game.getAttribute('data-gametime');
       console.log(game);
       console.log(gametime);
 
@@ -436,7 +436,7 @@
       el.style.borderTop = '2px dotted #2f2f2f';
       el.setAttribute('data-gameid', g.game_id);
       el.setAttribute('data-week', g.week);
-      el.setAttribute('data-gametime', g.datetime);
+      el.setAttribute('data-gametime', g.gametime_raw);
 
       // gamerow (teams column)
       let col1 = document.createElement('div');

@@ -3,7 +3,7 @@
 function procGamesResponses(dbGames, dbResponses) {
   let data = dbGames.map((game) => {
     let responses = dbResponses.filter((x) => x['game_id'] == game['game_id']);
-    game.datetime = game.gametime;
+    game.gametime_raw = game.gametime;
     game.gameday = game.gametime_short.split(' @ ')[0];
     game.gameday_long = game.gametime_long.split(' @ ')[0];
     game.gametime = game.gametime_short.split(' @ ')[1];
