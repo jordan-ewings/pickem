@@ -151,64 +151,36 @@
     document.getElementById('modalForm').addEventListener('submit', (e) => {
       e.preventDefault();
       let formData = new FormData(e.target);
+      // append timestamp to form data
+      // format timestamp like this: 9/9/2021 8:00:00
+      formData.append('timestamp', new Date().toLocaleString());
       let formUrlParams = new URLSearchParams(formData).toString();
       let formUrlRoot = 'https://script.google.com/macros/s/AKfycbxveY_vNT4LvlRThJQuaRszp9WmEXfKv376CgdNbRM1Gy5jWUjwGmxCo3Jv0fOpacpz/exec';
       let formUrl = formUrlRoot + '?' + formUrlParams;
+      console.log(formUrl);
 
-      // send data
-      fetch(formUrl, {
-        method: 'GET',
-      })
-        .then(response => {
-          // Handle the response (if needed)
-          console.log('Form submitted successfully!', response);
-          // hide modal
-          let modal = bootstrap.Modal.getInstance(document.getElementById('modalFormContainer'));
-          modal.hide();
-          // refresh data
-          // sendData(true);
+      var requestOptions = {
+        method: 'POST',
+        redirect: 'follow'
+      };
+
+      fetch(formUrl, requestOptions)
+        .then(response => response.json())
+        .then(result => {
+          console.log(result);
+          // show success message in modal footer for 3 seconds, or until modal is closed
+          let modalFooter = document.getElementById('modalForm').querySelector('.modal-footer');
+          let successMsg = document.createElement('span');
+          successMsg.classList.add('text-success', 'text-smaller');
+          successMsg.textContent = 'Pick changed successfully!';
+          modalFooter.appendChild(successMsg);
+          setTimeout(() => {
+            successMsg.remove();
+          }, 3000);
+
         })
-        .catch(error => {
-          // Handle any errors
-          console.error('Form submission error:', error);
-        });
+        .catch(error => console.log('error', error));
     });
-
-    // function handleFormSubmit(event) {
-    //   event.preventDefault(); // Prevents the default form submission behavior
-
-    //   // Get form data
-    //   const form = event.target;
-    //   const formData = new FormData(form);
-    //   // convert formData to url-encoded string
-    //   let urlEncodedData = "";
-    //   for (let pair of formData.entries()) {
-    //     urlEncodedData += encodeURIComponent(pair[0]) + '=' + encodeURIComponent(pair[1]) + '&';
-    //   }
-    //   // remove trailing ampersand
-    //   urlEncodedData = urlEncodedData.substring(0, urlEncodedData.length - 1);
-    //   // append url-encoded string to form action url
-    //   let form_url = form.action;
-    //   form_url = form_url + '?' + urlEncodedData;
-    //   console.log(form_url);
-
-    //   // let header = new Headers();
-    //   // header.append('Content-Type', 'application/json');
-
-    //   // Fetch the action URL with form data
-    //   fetch(form_url, {
-    //     method: form.method,
-    //     // body: JSON.stringify(Object.fromEntries(formData))
-    //   })
-    //     .then(response => {
-    //       // Handle the response (if needed)
-    //       console.log('Form submitted successfully!', response);
-    //     })
-    //     .catch(error => {
-    //       // Handle any errors
-    //       console.error('Form submission error:', error);
-    //     });
-    // }
 
     sendData(refresh = false, devmode = false);
 
@@ -269,13 +241,6 @@
           prepareForm(e);
         });
       }
-
-      // check if modalForm has event listener, if not, add it
-      // let formModal = document.getElementById('modalForm');
-      // if (formModal.hasAttribute('data-haslistener') == false) {
-      //   formModal.setAttribute('data-haslistener', '');
-      //   formModal.addEventListener('submit', handleFormSubmit);
-      // }
 
       let playerValue = playerSelect.value;
       let f_playerSet = playerSelect.value != 'Player';
@@ -663,6 +628,7 @@
 
       // pickrow (picks column) (picks container) (each pick)
       inputs.forEach((pick) => {
+        let pickdata = pick.data;
         let pickItem = document.createElement('div');
         pickItem.classList.add('col', 'px-1');
 
@@ -671,7 +637,10 @@
         pickItemDiv.classList.add('pickitem', 'd-flex', 'align-items-center', 'py-1');
 
         // player identifiers
-        pickItemDiv.setAttribute('data-player', pick.name.textContent);
+        Object.keys(pickdata).forEach((key) => {
+          let label = key.replace('_', '-');
+          pickItemDiv.setAttribute('data-' + label, pickdata[key]);
+        });
 
         // team identifiers
         pickItemDiv.setAttribute('data-team', '');
@@ -806,7 +775,7 @@
 
         // if (pick == '' || status != 'OK') ename.classList.add('opacity-25');
 
-        return { logo: elogo, name: ename };
+        return { logo: elogo, name: ename, data: p };
       });
 
       return info;
