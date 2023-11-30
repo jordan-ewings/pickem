@@ -40,6 +40,7 @@
       </tbody>
     </table>
   </div>
+  <script src="https://cdn.jsdelivr.net/gh/jordan-ewings/pickem/scripts/base.js"></script>
 
   <script>
     var formType = "TNF";
@@ -91,16 +92,6 @@
       });
 
       document.getElementById("mytable").querySelector('tbody').innerHTML = rows;
-    }
-
-    /* ------------------------------------------------ */
-
-    async function getSheet(sheet) {
-      const shname = sheet.split(' ').join('+');
-      const resp = await fetch('https://docs.google.com/spreadsheets/d/14ZYopWScY-nkBJ4Eq7DpLqRw6s2Fre3EWYkKsCIc8lU/gviz/tq?tqx=out:json&tq&sheet=' + shname);
-      const raw = await resp.text();
-      const data = procSheet(raw);
-      return data;
     }
 
   </script>

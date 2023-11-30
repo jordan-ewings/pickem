@@ -64,6 +64,7 @@
   <!-- <div>
     <p id='pinfo'></p>
   </div> -->
+  <script src="https://cdn.jsdelivr.net/gh/jordan-ewings/pickem/scripts/base.js"></script>
 
   <script>
 
@@ -154,18 +155,7 @@
       document.getElementById('mytable').innerHTML = body.html();
     }
 
-    /* ------------------------------------------------ */
-
-    async function getSheet(sheet) {
-      const shname = sheet.split(' ').join('+');
-      const resp = await fetch('https://docs.google.com/spreadsheets/d/14ZYopWScY-nkBJ4Eq7DpLqRw6s2Fre3EWYkKsCIc8lU/gviz/tq?tqx=out:json&tq&sheet=' + shname);
-      const raw = await resp.text();
-      const data = procSheet(raw);
-      return data;
-    }
-
   </script>
-  <script src="https://cdn.jsdelivr.net/gh/jordan-ewings/pickem@main/scripts/base.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous">
   </script>
 </body>
