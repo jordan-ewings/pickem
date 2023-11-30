@@ -158,7 +158,7 @@
     var USING_LIVE = false;
 
     var MODAL_ENABLED = true;
-    var FORMS_ENABLED = false;
+    var FORMS_ENABLED = true;
 
     var DATA_LOADED = false;
     var TBL_LOADED = false;
@@ -262,6 +262,14 @@
         document.getElementById("toggle-picks-btn").classList.remove('d-none');
         document.getElementById("progGames").classList.remove('d-none');
 
+        // add event listeners
+        let modalForm = document.getElementById('modalForm');
+        modalForm.addEventListener('submit', handleFormSubmit);
+        modalForm.querySelector('select[name="player"]').addEventListener('change', (e) => {
+          prepareForm(e);
+        });
+
+
         TBL_LOADED = true;
       }
 
@@ -340,6 +348,8 @@
 
       let tblrow = document.createElement('div');
       tblrow.classList.add('tblrow', 'game-' + g.state);
+      tblrow.setAttribute('data-gameid', g.game_id);
+      tblrow.setAttribute('data-week', g.week);
 
       if (g.responses) {
         let pickrow = makePickrowDiv(g);

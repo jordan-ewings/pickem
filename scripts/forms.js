@@ -8,100 +8,99 @@ async function handleFormSubmit(e) {
   submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Loading...';
   submitBtn.setAttribute('disabled', '');
 
+  let formDataRaw = new FormData(e.target);
+  let player = formDataRaw.get('player');
 
-  let formData = new FormData(e.target);
-  let player = formData.get('player');
+  let formActions = [];
+  let formTitles = [];
 
-  let keys = [...formData.keys()];
+  let keys = [...formDataRaw.keys()];
   keys.forEach((key) => {
     let input = e.target.querySelector('[name="' + key + '"]');
     if (input.name != 'player') {
-      let checked = e.target.querySelector('[name="' + key + '"]:checked');
-      if (checked) {
-        let value = checked.value;
-        formData.delete(key);
-
-        formData.append(input.getAttribute('data-entryid'), value);
-      } else {
-        formData.delete(key);
-      }
-    } else {
-      let value = input.value;
-      formData.delete(key);
-      formData.append(input.getAttribute('data-entryid'), value);
+      let formAction = input.getAttribute('data-form-action');
+      let formTitle = input.getAttribute('data-form-title');
+      if (formActions.includes(formAction) == false) formActions.push(formAction);
+      if (formTitles.includes(formTitle) == false) formTitles.push(formTitle);
     }
   });
 
-  console.log(formData);
+  let formUrls = [];
+  formActions.forEach((formAction) => {
+    let formData = new FormData();
+    let keys = [...formDataRaw.keys()];
+    keys.forEach((key) => {
+      let input = e.target.querySelector('[name="' + key + '"]');
+      if (input.getAttribute('data-form-action') != formAction) return;
+      if (input.name == 'player') {
+        let value = input.value;
+        formData.append(input.getAttribute('data-namealt-player'), value);
+      } else {
+        let checked = e.target.querySelector('[name="' + key + '"]:checked');
+        if (checked) {
+          let value = checked.value;
+          formData.append(input.getAttribute('data-namealt-game'), value);
+        }
+      }
+    });
 
-  let formUrlRoot = e.target.getAttribute('data-entryurl').replace('/viewform', '/formResponse');
-  let formUrlParams = new URLSearchParams(formData).toString();
-  let formUrl = formUrlRoot + '?' + formUrlParams;
-  console.log(formUrl);
+    let formUrlRoot = formAction;
+    console.log(formUrlRoot);
+    let formUrlParams = new URLSearchParams(formData).toString();
+    console.log(Object.fromEntries(formData));
+    let formUrl = formUrlRoot + '?' + formUrlParams;
+    console.log(formUrl);
+    formUrls.push(formUrl);
+  });
+
+  console.log(formUrls);
+
 
   let requestOptions = {
     method: 'POST',
     redirect: 'follow'
   };
 
-  await fetch(formUrl, requestOptions)
+  // check if form submission was successful
+  let f_success = true;
+  await fetch(formUrls[0], requestOptions)
     .catch(error => console.log('error', error));
 
-  // getSheet(X) where X = pickitem's data-form-title, check last row to confirm:
-  // if last row's player is player, and if timestamp is within 10 seconds of now, then update picktime logos to reflect new picks (in pickrow divs)
-  // if both conditions are not met, show modalMessage error to try again.
+  let sheetData = await getSheet(formTitles[0]);
+  let lastRow = sheetData[sheetData.length - 1];
+  let f_player = lastRow['Player'] == player;
+  let f_timestamp = lastRow['Timestamp'] != '';
+  let timestamp = new Date(lastRow['Timestamp']);
+  let currtime = new Date();
+  let time_diff = (currtime - timestamp) / 1000;
+  let abs_time_diff = Math.abs(time_diff);
+  let f_time = abs_time_diff < 10;
+  let f_lastRow = f_player && f_timestamp && f_time;
+  if (f_lastRow == false) f_success = false;
 
-
-  // use formdata to update picktime logos to reflect new picks (in pickrow divs)
-  let formDataObj = Object.fromEntries(formData.entries());
-  let entryIds = Object.keys(formDataObj);
-  entryIds.forEach((entryId) => {
-    if (formDataObj[entryId] == player) return;
-    // find pickitem with data-field-game == entryId and data-player == player
-    let pickitem = document.querySelector('.pickitem[data-field-game="' + entryId + '"][data-player="' + player + '"]');
-    // get logo src of formDataObj[entryId] team and set pickitem logo src to that
-    let teamfull = formDataObj[entryId];
-    let teamrow = document.querySelector('.teamrow[data-teamfull="' + teamfull + '"]');
-    let logo = teamrow.querySelector('img').src;
-    // if pickitem picture element is 'i' tag, replace with 'img' tag
-    if (pickitem.querySelector('i')) {
-      let img = document.createElement('img');
-      img.src = logo;
-      img.classList.add('object-fit-contain');
-      img.style.height = '1.2rem';
-      img.style.width = '1.2rem';
-      pickitem.querySelector('i').replaceWith(img);
-    } else {
-      pickitem.querySelector('img').src = logo;
-    }
-
-    // update pickitem data attributes to reflect new pick
-    pickitem.setAttribute('data-pick-teamfull', teamfull);
-
-  });
-
-  // hide modal footer buttons, show modal messages for 3, seconds, hide modal, remove 'd-none' from buttons to prepare for next time
   let modal = document.getElementById('modalFormContainer');
   let modalFooter = modal.querySelector('.modal-footer');
-  // let buttons = modalFooter.querySelectorAll('button');
-  // buttons.forEach((button) => {
-  //   button.classList.add('d-none');
-  // });
-  // let msg = modal.querySelector('#modalMessage');
-  // msg.classList.remove('d-none');
-  // change submit button inner html to checkmark
-  submitBtn.innerHTML = '<i class="fa-solid fa-check"></i>';
 
-  setTimeout(() => {
-    // msg.classList.add('d-none');
-    modalFooter.classList.add('d-none');
-    submitBtn.removeAttribute('disabled');
-    submitBtn.innerHTML = 'Change Picks';
-    // hide modal
-    let modal = bootstrap.Modal.getInstance(document.getElementById('modalFormContainer'));
-    modal.hide();
-
-  }, 1000);
+  if (f_success) {
+    submitBtn.innerHTML = '<i class="fa-solid fa-check"></i>';
+    setTimeout(() => {
+      modalFooter.classList.add('d-none');
+      submitBtn.removeAttribute('disabled');
+      submitBtn.innerHTML = 'Change Picks';
+      let modalBS = bootstrap.Modal.getInstance(modal);
+      modalBS.hide();
+    }, 1000);
+  } else {
+    submitBtn.innerHTML = '<i class="fa-solid fa-exclamation"></i>';
+    let modalMessage = document.getElementById('modalMessage');
+    modalMessage.classList.remove('d-none');
+    modalMessage.textContent = 'Something went wrong. Please try again.';
+    setTimeout(() => {
+      modalMessage.classList.add('d-none');
+      submitBtn.removeAttribute('disabled');
+      submitBtn.innerHTML = 'Change Picks';
+    }, 3000);
+  }
 
 }
 
@@ -109,18 +108,14 @@ function prepareForm(e) {
   console.log(e.target);
 
   let modal = document.getElementById('modalFormContainer');
-  let formGames = document.getElementById('modalFormGames');
+  let modalFormGames = document.getElementById('modalFormGames');
+  let modalForm = document.getElementById('modalForm');
   let modalFooter = document.getElementById('modalForm').querySelector('.modal-footer');
   if (!modalFooter.classList.contains('d-none')) {
     modalFooter.classList.add('d-none');
   }
+
   let playerSelect = modal.querySelector('#player');
-  if (playerSelect.hasAttribute('data-haslistener') == false) {
-    playerSelect.setAttribute('data-haslistener', '');
-    playerSelect.addEventListener('change', (e) => {
-      prepareForm(e);
-    });
-  }
 
   let playerValue = playerSelect.value;
   let f_playerSet = playerSelect.value != 'Player';
@@ -130,27 +125,20 @@ function prepareForm(e) {
     playerValue = pickitem.getAttribute('data-player');
     playerSelect.value = playerValue;
 
-    let entryId = pickitem.getAttribute('data-field-player');
-    playerSelect.setAttribute('data-entryid', entryId);
-    let entryURL = pickitem.getAttribute('data-url');
-    document.getElementById('modalForm').setAttribute('data-entryurl', entryURL);
+    // store week number in modalForm
+    let weekDiv = pickitem.closest('.week-games');
+    let weekNum = weekDiv.getAttribute('id').replace('week-games-', '');
+    modalForm.setAttribute('data-week', weekNum);
   }
 
 
   // identify week-games div that is being displayed (all others have class hide)
-  let weekGames = document.getElementById('tblGames').querySelectorAll('.week-games');
-  let weekNum;
-  let tblrows;
-  weekGames.forEach((week) => {
-    if (week.classList.contains('hide')) return;
-    if (tblrows != undefined) return;
-    tblrows = week.querySelectorAll('.tblrow');
-    weekNum = week.getAttribute('id').replace('week-games-', '');
-  });
-
-  formGames.innerHTML = '';
+  let weekNum = modalForm.getAttribute('data-week');
+  let tblrows = document.getElementById('week-games-' + weekNum).querySelectorAll('.tblrow');
+  modalFormGames.innerHTML = '';
   let openGames = tblrows.length;
   let pickedGames = 0;
+
   tblrows.forEach((tblrow) => {
 
     let teamSelectValue = '';
@@ -162,14 +150,18 @@ function prepareForm(e) {
     teamSelectValue = pickitem.getAttribute('data-pick-teamfull');
 
     if (tblrow.classList.contains('game-post')) {
-      if (pickitem.querySelector('span').classList.contains('opacity-25')) {
+      if (is_faded) {
         pickFormatting = ['border-danger'];
       } else {
         pickFormatting = ['border-success'];
       }
     }
 
+    let entryForm = pickitem.getAttribute('data-form-title');
+    let entryAction = pickitem.getAttribute('data-url').replace('/viewform', '/formResponse');
+    let entryPlayer = pickitem.getAttribute('data-field-player');
     let entryID = pickitem.getAttribute('data-field-game');
+
     let gamerow = tblrow.querySelector('.gamerow');
     let gameid = gamerow.getAttribute('data-gameid');
     let gametime_raw = gamerow.getAttribute('data-gametime');
@@ -180,9 +172,9 @@ function prepareForm(e) {
     if (!is_open) openGames--;
 
     // wrap each team in a radio button input
-    formGames.appendChild(gamerow.cloneNode(true));
-    let game = formGames.querySelector('.gamerow[data-gameid="' + gameid + '"]');
-    // add left border to game div
+    modalFormGames.appendChild(gamerow.cloneNode(true));
+    let game = modalFormGames.querySelector('.gamerow[data-gameid="' + gameid + '"]');
+
     game.classList.add('rounded-end-3', 'mb-3', 'bg-main', 'pb-2', 'ps-1');
     game.style.borderTop = 'none';
     game.style.borderLeft = '3px solid #0e0e0e';
@@ -197,18 +189,15 @@ function prepareForm(e) {
     timeRemainingDiv.setAttribute('data-deadline', gametime_raw);
     game.querySelector('.col-9').appendChild(timeRemainingDiv);
 
-    // if status is late, show 'LATE' in a rounded pill in the bottom-right corner of the gamerow (column 2, bottom of column)
     if (status == 'LATE') {
-      // let late = document.createElement('span');
       let late = document.createElement('div');
       late.classList.add('rounded-pill', 'text-center', 'text-smaller');
       late.classList.add('bg-danger', 'text-white');
       late.textContent = 'LATE';
-      // add class to push this to the bottom of the column
       late.classList.add('mt-2', 'ms-auto', 'me-1');
       game.querySelector('.col-3').appendChild(late);
-
     }
+
     let teams = game.querySelectorAll('.teamrow');
 
     teams.forEach((team) => {
@@ -229,7 +218,10 @@ function prepareForm(e) {
       input.setAttribute('name', gameid);
       input.setAttribute('id', teamId);
       input.setAttribute('value', teamName);
-      input.setAttribute('data-entryid', entryID);
+      input.setAttribute('data-namealt-game', entryID);
+      input.setAttribute('data-form-action', entryAction);
+      input.setAttribute('data-form-title', entryForm);
+      input.setAttribute('data-namealt-player', entryPlayer);
 
       // if teamSelectValue matches teamName, check the input
       if (teamSelectValue == teamName) {
@@ -295,24 +287,15 @@ function prepareForm(e) {
 
   let mSub = document.getElementById('modalFormSubtitle');
   let subtext = openGames + ' game' + (openGames == 1 ? '' : 's') + ' available';
-  // append to subtext if not all games have been picked
   let ttlGames = tblrows.length;
-  if (ttlGames != pickedGames) {
-    subtext += ' (' + pickedGames + '/' + ttlGames + ' picked)';
-  }
-
-
-  if (openGames == 0) {
-    subtext = 'Complete';
-  }
+  if (ttlGames != pickedGames) subtext += ' (' + pickedGames + '/' + ttlGames + ' picked)';
+  if (openGames == 0) subtext = 'Complete';
   mSub.textContent = subtext;
 
   updateTimeRemainingDivs();
-  // when modal is closed, stop updating dl-clocks
   if (modal.hasAttribute('data-dlclocklistener') == false) {
     modal.setAttribute('data-dlclocklistener', '');
     modal.addEventListener('shown.bs.modal', (e) => {
-
       setInterval(updateTimeRemainingDivs, 5000);
     })
     modal.addEventListener('hidden.bs.modal', (e) => {
