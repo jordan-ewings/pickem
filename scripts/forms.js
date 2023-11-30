@@ -108,14 +108,13 @@ async function handleFormSubmit(e) {
 function prepareForm(e) {
   console.log(e.target);
 
-  let form = document.getElementById('modalFormContainer');
-  let formbody = document.getElementById('modalFormBody');
+  let modal = document.getElementById('modalFormContainer');
   let formGames = document.getElementById('modalFormGames');
   let modalFooter = document.getElementById('modalForm').querySelector('.modal-footer');
   if (!modalFooter.classList.contains('d-none')) {
     modalFooter.classList.add('d-none');
   }
-  let playerSelect = form.querySelector('#player');
+  let playerSelect = modal.querySelector('#player');
   if (playerSelect.hasAttribute('data-haslistener') == false) {
     playerSelect.setAttribute('data-haslistener', '');
     playerSelect.addEventListener('change', (e) => {
@@ -241,41 +240,44 @@ function prepareForm(e) {
         input.setAttribute('data-origchecked', 'false');
       }
 
-      if (!is_open) {
+      if (!is_open || FORMS_ENABLED == false) {
         input.setAttribute('disabled', '');
       }
 
       // if any input values change, show modal footer
-      input.addEventListener('change', (e) => {
+      if (FORMS_ENABLED) {
+        input.addEventListener('change', (e) => {
 
-        let form = document.getElementById('modalForm');
-        let modalFooter = form.querySelector('.modal-footer');
-        let formInputs = form.querySelectorAll('input');
+          let modal = document.getElementById('modalFormContainer');
+          let form = modal.querySelector('#modalForm');
+          let modalFooter = modal.querySelector('.modal-footer');
+          let formInputs = form.querySelectorAll('input');
 
-        let inputs_changed = false;
-        formInputs.forEach((input) => {
-          let gr = input.closest('.gamerow');
-          if (input.checked && input.getAttribute('data-origchecked') == 'false') {
-            inputs_changed = true;
-            gr.classList.add('border-primary');
-            // }
+          let inputs_changed = false;
+          formInputs.forEach((input) => {
+            let gr = input.closest('.gamerow');
+            if (input.checked && input.getAttribute('data-origchecked') == 'false') {
+              inputs_changed = true;
+              gr.classList.add('border-primary');
+              // }
+            } else {
+              if (input.checked && input.getAttribute('data-origchecked') == 'true') {
+                gr.classList.remove('border-primary');
+              }
+            }
+          });
+          if (inputs_changed == true) {
+            if (modalFooter.classList.contains('d-none')) {
+              modalFooter.classList.remove('d-none');
+            }
           } else {
-            if (input.checked && input.getAttribute('data-origchecked') == 'true') {
-              gr.classList.remove('border-primary');
+            if (modalFooter.classList.contains('d-none') == false) {
+              modalFooter.classList.add('d-none');
             }
           }
-        });
-        if (inputs_changed == true) {
-          if (modalFooter.classList.contains('d-none')) {
-            modalFooter.classList.remove('d-none');
-          }
-        } else {
-          if (modalFooter.classList.contains('d-none') == false) {
-            modalFooter.classList.add('d-none');
-          }
-        }
 
-      });
+        });
+      }
 
       // append input to label
       tempDiv.appendChild(input);
@@ -307,13 +309,13 @@ function prepareForm(e) {
 
   updateTimeRemainingDivs();
   // when modal is closed, stop updating dl-clocks
-  if (form.hasAttribute('data-dlclocklistener') == false) {
-    form.setAttribute('data-dlclocklistener', '');
-    form.addEventListener('shown.bs.modal', (e) => {
+  if (modal.hasAttribute('data-dlclocklistener') == false) {
+    modal.setAttribute('data-dlclocklistener', '');
+    modal.addEventListener('shown.bs.modal', (e) => {
 
       setInterval(updateTimeRemainingDivs, 5000);
     })
-    form.addEventListener('hidden.bs.modal', (e) => {
+    modal.addEventListener('hidden.bs.modal', (e) => {
       clearInterval(updateTimeRemainingDivs);
     });
   }

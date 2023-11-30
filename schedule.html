@@ -80,8 +80,11 @@
           </div>
         </div>
         <button id="toggle-picks-btn" class="w-25 fw-semibold btn btn-sm btn-primary text-nowrap d-none" type="button" onclick="togglePicks()">Show Picks</button>
+        <!-- add button to sendData (updating tblrows)... a small refresh icon as inner html-->
+        <button id="refresh-btn" class="w-auto mx-0 fw-light btn text-nowrap d-none" type="button" onclick="sendData()"><i class="fa-solid fa-sync-alt"></i></button>
       </div>
     </div>
+
     <div id="tblGames" class="mx-1">
       <!-- game rows-->
 
@@ -151,8 +154,16 @@
   </div>
 
   <script>
-    var MODE = 'prod';
+    var MODE = 'dev';
+    var USING_LIVE = false;
 
+    var MODAL_ENABLED = true;
+    var FORMS_ENABLED = false;
+
+    var DATA_LOADED = false;
+    var TBL_LOADED = false;
+  </script>
+  <script>
     var modes = { 'dev': 'scripts/', 'prod': 'https://cdn.jsdelivr.net/gh/jordan-ewings/pickem/scripts/' };
     var scripts = ['base.js', 'procGamesResponses.js', 'forms.js'];
     scripts.forEach((script) => {
@@ -161,19 +172,24 @@
     })
   </script>
   <script>
-    var USING_LIVE = false;
-    var DATA_LOADED = false;
-
     async function getData() {
 
       if (DATA_LOADED == false) {
         let loader = document.createElement('div');
-        loader.classList.add('d-flex', 'justify-content-center', 'align-items-center', 'h-100', 'w-100');
-        loader.innerHTML = '<div class="spinner-border text-light" role="status"><span class="visually-hidden">Loading...</span></div>';
+        loader.id = 'view-loading';
+        loader.classList.add('d-flex', 'flex-column', 'justify-content-center', 'align-items-center', 'h-100', 'w-100');
+        loader.innerHTML =
+          `<div class="spinner-border text-light" role="status">
+          <span class="visually-hidden">Loading...</span>
+          </div>
+          <div class="mt-3">
+            <h6>Loading...</h6>
+          </div>`;
         document.body.appendChild(loader);
       }
 
-      const currweek = await getCurrentWeek();
+      const weekinfo = await getSheet('SeasonInfo');
+      const currweek = weekinfo.filter((x) => x.current == '1')[0];
       writeData(currweek, 'data-liveweek');
 
       const games = await getSheet('Games');
@@ -197,7 +213,7 @@
       writeData(data, 'json-data');
 
       if (DATA_LOADED == false) {
-        document.body.removeChild(loader);
+        document.getElementById('view-loading').remove();
         DATA_LOADED = true;
       }
 
@@ -217,31 +233,36 @@
     // don't use handleFormSubmit function, instead use fetch to submit form data
     // document.getElementById('modalForm').addEventListener('submit', handleFormSubmit);
 
-    sendData(enableModal = false);
+    sendData();
 
     /* ------------------------------------------------ */
 
-    async function sendData(enableModal = true) {
+    async function sendData() {
 
-      let data = await getData();
-      let currweek = readData('data-liveweek');
+      if (TBL_LOADED == true) {
+        let btn = document.getElementById('refresh-btn');
+        let btn_html = btn.innerHTML;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm text-light" role="status" aria-hidden="true"></span>';
 
-      makeWeekButtons();
-      appendTblrows();
-      filterTable(currweek.week);
-      document.getElementById("toggle-picks-btn").classList.remove('d-none');
-      document.getElementById("progGames").classList.remove('d-none');
+        await getData();
+        updateTblrows();
+        console.log('updated');
 
-      if (enableModal == false) {
-        // remove event listener from pickitems
-        let pickitems = document.querySelectorAll('.pickitem');
-        pickitems.forEach((pickitem) => {
-          pickitem.removeEventListener('click', prepareForm);
-          pickitem.removeAttribute('data-bs-toggle');
-          pickitem.removeAttribute('data-bs-target');
-          pickitem.removeAttribute('role');
-        });
+        btn.innerHTML = '';
+        btn.innerHTML = btn_html;
+      } else {
 
+        await getData();
+        updateTblrows();
+
+        makeWeekButtons();
+        let currweek = readData('data-liveweek');
+        filterTable(currweek.week);
+        document.getElementById("refresh-btn").classList.remove('d-none');
+        document.getElementById("toggle-picks-btn").classList.remove('d-none');
+        document.getElementById("progGames").classList.remove('d-none');
+
+        TBL_LOADED = true;
       }
 
     }
@@ -249,9 +270,41 @@
     /* ------------------------------------------------ */
 
     // use data and supporting makeDiv functions to build rows (avoid using El objects)
-    function appendTblrows() {
+    function updateTblrows() {
 
-      let data = JSON.parse(document.getElementById('json-data').textContent);
+      let data = readData('json-data');
+      let tblGames = document.getElementById('tblGames');
+
+      // update tblrows (if they exist)
+      if (TBL_LOADED == true) {
+        let tblrows = tblGames.getElementsByClassName('tblrow');
+        for (let i = 0; i < tblrows.length; i++) {
+          let row = tblrows.item(i);
+          let gid = row.getAttribute('data-gameid');
+          let week = row.getAttribute('data-week');
+          let g = data.filter((w) => w.week == week)[0].games.filter((x) => x.game_id == gid)[0];
+          let newrow = makeTblrowDiv(g);
+
+          // check if row needs to be replaced
+          let is_same = true;
+          let oldChildren = row.childNodes;
+          let newChildren = newrow.childNodes;
+          for (let j = 0; j < oldChildren.length; j++) {
+            let oldChild = oldChildren.item(j);
+            let newChild = newChildren.item(j);
+            if (oldChild.outerHTML != newChild.outerHTML) {
+              is_same = false;
+              break;
+            }
+          }
+
+          if (!is_same) {
+            row.replaceWith(newrow);
+          }
+        }
+
+        return;
+      }
 
       let rowdata = data.map((w) => {
         let rows = document.createElement('div');
@@ -275,6 +328,7 @@
         return { week: w.week, games: rows };
       });
 
+
       let rowSet = rowdata.map((x) => x['games']);
       rowSet.forEach((x) => document.getElementById("tblGames").appendChild(x));
     }
@@ -282,9 +336,7 @@
     /* ------------------------------------------------ */
 
     function makeTblrowDiv(g) {
-
       let gamerow = makeGamerowDiv(g);
-
 
       let tblrow = document.createElement('div');
       tblrow.classList.add('tblrow', 'game-' + g.state);
@@ -533,15 +585,17 @@
         pickItemDiv.appendChild(logo);
         pickItemDiv.appendChild(name);
 
-        // instead of wrapping pickItemDiv in a link, make the pickItemDiv the link
-        pickItemDiv.setAttribute('role', 'button');
-        pickItemDiv.setAttribute('data-bs-toggle', 'modal');
-        pickItemDiv.setAttribute('data-bs-target', '#modalFormContainer');
-        pickItemDiv.addEventListener('click', (e) => {
-          // populate form using copyGameRowContentsToFormBody
-          prepareForm(e);
-        });
-        pickItemDiv.setAttribute('tabindex', '0');
+        if (MODAL_ENABLED) {
+          // instead of wrapping pickItemDiv in a link, make the pickItemDiv the link
+          pickItemDiv.setAttribute('role', 'button');
+          pickItemDiv.setAttribute('data-bs-toggle', 'modal');
+          pickItemDiv.setAttribute('data-bs-target', '#modalFormContainer');
+          pickItemDiv.addEventListener('click', (e) => {
+            // populate form using copyGameRowContentsToFormBody
+            prepareForm(e);
+          });
+          pickItemDiv.setAttribute('tabindex', '0');
+        }
 
         pickItem.appendChild(pickItemDiv);
         picksContainer.appendChild(pickItem);
@@ -796,24 +850,6 @@
 
       console.log(data);
       return data;
-    }
-
-    /* ------------------------------------------------ */
-
-    function setLoadingBar(value, task, close = false) {
-      const div = document.getElementById('view-loading');
-      const bar = div.querySelector('.progress-bar');
-      const text = div.querySelector('h5');
-      if (value) bar.style.width = value + '%';
-      if (task) text.innerHTML = task;
-    }
-
-    /* ------------------------------------------------ */
-
-    async function getCurrentWeek() {
-      let info = await getSheet('SeasonInfo');
-      let currweek = info.filter((x) => x.current == '1')[0];
-      return currweek;
     }
 
 
