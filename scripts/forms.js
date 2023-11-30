@@ -63,8 +63,8 @@ async function handleFormSubmit(e) {
 
   // check if form submission was successful
   let f_success = true;
-  await fetch(formUrls[0], requestOptions)
-    .catch(error => console.log('error', error));
+  await fetch(formUrls[0], requestOptions);
+  // .catch(error => console.log('error', error));
 
   let sheetData = await getSheet(formTitles[0]);
   let lastRow = sheetData[sheetData.length - 1];
