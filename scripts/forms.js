@@ -63,20 +63,24 @@ async function handleFormSubmit(e) {
 
   // check if form submission was successful
   let f_success = false;
-  await fetch(formUrls[0], requestOptions);
-  // .catch(error => console.log('error', error));
+  for (let i = 0; i < formUrls.length; i++) {
+    await fetch(formUrls[i], requestOptions);
+  }
 
-  let sheetData = await getSheet(formTitles[0]);
-  let lastRow = sheetData[sheetData.length - 1];
-  let f_player = lastRow['Player'] == player;
-  let f_timestamp = lastRow['Timestamp'] != '';
-  let timestamp = new Date(lastRow['Timestamp']);
-  let currtime = new Date();
-  let time_diff = (currtime - timestamp) / 1000;
-  let abs_time_diff = Math.abs(time_diff);
-  let f_time = abs_time_diff < 10;
-  let f_lastRow = f_player && f_timestamp && f_time;
-  if (f_lastRow == true) f_success = true;
+  for (let i = 0; i < formUrls.length; i++) {
+
+    let sheetData = await getSheet(formTitles[i]);
+    let lastRow = sheetData[sheetData.length - 1];
+    let f_player = lastRow['Player'] == player;
+    let f_timestamp = lastRow['Timestamp'] != '';
+    let timestamp = new Date(lastRow['Timestamp']);
+    let currtime = new Date();
+    let time_diff = (currtime - timestamp) / 1000;
+    let abs_time_diff = Math.abs(time_diff);
+    let f_time = abs_time_diff < 10;
+    let f_lastRow = f_player && f_timestamp && f_time;
+    if (f_lastRow == true) f_success = true;
+  }
 
   let modal = document.getElementById('modalFormContainer');
   let modalFooter = modal.querySelector('.modal-footer');
