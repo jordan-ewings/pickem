@@ -47,7 +47,6 @@ async function handleFormSubmit(e) {
     let formUrlRoot = formAction;
     console.log(formUrlRoot);
     let formUrlParams = new URLSearchParams(formData).toString();
-    console.log(Object.fromEntries(formData));
     let formUrl = formUrlRoot + '?' + formUrlParams;
     console.log(formUrl);
     formUrls.push(formUrl);
