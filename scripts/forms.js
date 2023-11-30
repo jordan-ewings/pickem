@@ -62,7 +62,7 @@ async function handleFormSubmit(e) {
   };
 
   // check if form submission was successful
-  let f_success = true;
+  let f_success = false;
   await fetch(formUrls[0], requestOptions);
   // .catch(error => console.log('error', error));
 
@@ -76,12 +76,12 @@ async function handleFormSubmit(e) {
   let abs_time_diff = Math.abs(time_diff);
   let f_time = abs_time_diff < 10;
   let f_lastRow = f_player && f_timestamp && f_time;
-  if (f_lastRow == false) f_success = false;
+  if (f_lastRow == true) f_success = true;
 
   let modal = document.getElementById('modalFormContainer');
   let modalFooter = modal.querySelector('.modal-footer');
 
-  if (f_success) {
+  if (f_success == true) {
     submitBtn.innerHTML = '<i class="fa-solid fa-check"></i>';
     setTimeout(() => {
       modalFooter.classList.add('d-none');
