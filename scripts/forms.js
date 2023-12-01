@@ -248,7 +248,7 @@ function prepareForm(e) {
 
   let subtext2 = pickedGames + ' of ' + ttlGames + ' games picked';
   if (pickedGames == 0) subtext2 = 'No games picked';
-  mSub2.textContent = subtext2;
+  // mSub2.textContent = subtext2;
   mSub2.innerHTML = '';
   mSub2.appendChild(document.createTextNode(subtext2));
 

@@ -19,8 +19,17 @@
       margin-right: 0;
     }
 
-    *::-webkit-scrollbar {
+    /* *::-webkit-scrollbar {
       width: 0 !important;
+    } */
+
+    body::-webkit-scrollbar,
+    #filterCont::-webkit-scrollbar,
+    #modalFormContainer::-webkit-scrollbar,
+    .modal-body::-webkit-scrollbar,
+    .modal-dialog::-webkit-scrollbar,
+    .modal-content::-webkit-scrollbar {
+      display: none;
     }
 
     /* decrease padding, remove margin on modal */
@@ -31,6 +40,10 @@
 
     .modal-body {
       padding: 0 !important;
+    }
+
+    .modal-dialog {
+      margin: 0 !important;
     }
 
     .modal-footer {
