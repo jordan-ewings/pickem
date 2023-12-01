@@ -39,6 +39,11 @@
       margin: 0 !important;
     }
 
+
+    #modalFormBody {
+      padding: 0 !important;
+    }
+
     .modal-body {
       padding: 0 !important;
     }
@@ -48,11 +53,11 @@
     }
 
     .modal-footer {
-      padding: 8px 12px 8px 8px !important;
+      padding: 8px 12px !important;
     }
 
     .modal-header {
-      padding: 8px 12px 8px 8px !important;
+      padding: 12px 12px !important;
     }
 
     .text-dim {
@@ -202,7 +207,7 @@
 
   <script>
     var MODE = 'prod';
-    var USING_LIVE = false;
+    var USING_LIVE = true;
 
     var MODAL_ENABLED = true;
     var FORMS_ENABLED = true;
@@ -215,7 +220,7 @@
     var scripts = ['base.js', 'procGamesResponses.js', 'forms.js'];
     scripts.forEach((script) => {
       let src = modes[MODE] + script;
-      if (MODE == 'prod') src = src.replace(/\.js$/, '.min.js');
+      // if (MODE == 'prod') src = src.replace(/\.js$/, '.min.js');
       document.write('<script src="' + src + '"><\/script>');
     });
   </script>
@@ -245,16 +250,16 @@
       const games_resp = procGamesResponses(games, picks);
       writeData(games_resp, 'data-games-resp');
 
-      if (USING_LIVE == true) {
-        if (mode == 'init') {
-          const livedata = await fetchLive(currweek);
-          writeData(livedata, 'data-livegames');
-        }
-      }
+      // if (USING_LIVE == true) {
+      //   // if (DATA_LOADED == false) {
+      //     let livedata = await fetchLive(currweek.week);
+      //     writeData(livedata, 'data-livegames');
+      //   // }
+      // }
 
       let data = games_resp;
       if (USING_LIVE == true) {
-        let livedata = readData('data-livegames');
+        let livedata = await fetchLive(currweek.week)
         data = updateData(data, livedata);
       }
 
