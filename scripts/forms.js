@@ -266,11 +266,11 @@ function prepareForm(e) {
   // get vertical location of safari toolbar
   // set height of modal such that it doesn't go under toolbar
 
-  let toolbarHeight = window.outerHeight - window.innerHeight;
-  let modalCont = document.getElementById('modalFormContainer');
-  modalCont.style.height = 'calc(100vh - ' + toolbarHeight.toString() + 'px)';
-  modalCont.style.maxHeight = 'calc(100vh - ' + toolbarHeight.toString() + 'px)';
-  modalCont.style.overflowY = 'scroll';
+  // let toolbarHeight = window.outerHeight - window.innerHeight;
+  // let modalCont = document.getElementById('modalFormContainer');
+  // modalCont.style.height = 'calc(100vh - ' + toolbarHeight.toString() + 'px)';
+  // modalCont.style.maxHeight = 'calc(100vh - ' + toolbarHeight.toString() + 'px)';
+  // modalCont.style.overflowY = 'scroll';
 
 }
 
