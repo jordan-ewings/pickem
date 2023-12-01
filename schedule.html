@@ -13,6 +13,32 @@
       font-size: 12pt !important;
       color: #efefef !important;
       background-color: #1e1e1e !important;
+      margin-top: 0;
+      margin-bottom: 150px;
+      margin-left: 0;
+      margin-right: 0;
+    }
+
+    *::-webkit-scrollbar {
+      width: 0 !important;
+    }
+
+    /* decrease padding, remove margin on modal */
+    .modal-content {
+      padding: 0 !important;
+      margin: 0 !important;
+    }
+
+    .modal-body {
+      padding: 0 !important;
+    }
+
+    .modal-footer {
+      padding: 8px 12px 8px 8px !important;
+    }
+
+    .modal-header {
+      padding: 8px 12px 8px 8px !important;
     }
 
     .text-dim {
@@ -58,7 +84,7 @@
 </head>
 
 
-<body style="margin-bottom: 160px; margin-top:10px;">
+<body>
   <div class="container mx-auto px-0" style="max-width: 600px;">
     <div class="mx-1">
       <div id="filterCont" class="btn-group d-flex flex-nowrap overflow-x-scroll" role="group">
@@ -100,19 +126,33 @@
       <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
           <div class="modal-header bg-dim">
-            <div class="d-flex flex-column text-start ms-3">
-              <h5 class="modal-title" id="modalFormContainerLabel"></h5>
-              <span class="text-dim text-smaller" id="modalFormSubtitle"></span>
+            <div class="container">
+              <!-- two cols: first col is title. second col has (a) subtitle, and (b) underneath subtitle show # games picked -->
+              <div class="row justify-content-between align-items-center">
+                <div class="col-auto text-nowrap">
+                  <h5 class="modal-title" id="modalFormContainerLabel"></h5>
+                </div>
+                <div class="col-auto ms-2">
+                  <!-- <div class="d-flex"> -->
+                  <div class="row text-dim text-smaller" id="modalFormSubtitle"></div>
+                  <!-- </div> -->
+                  <!-- <div class="d-flex w-100"> -->
+                  <div class="row text-dim text-smaller" id="modalFormSubtitle2"></div>
+                  <!-- </div> -->
+                </div>
+                <div class="col-auto ms-auto">
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+              </div>
             </div>
-
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body bg-dim p-0 m-0">
             <form id="modalForm">
               <div id="modalFormBody" class="container m-0 pt-0">
                 <!-- make player select (options are Austin, Carly, Carter, John, Jordan, Kayla, Kristen, Kristy, Stella) -->
                 <div class="container sticky-top bg-dim w-100 py-3">
-                  <select class="form-select form-select bg-main m-0" name="player" id="player" required>
+                  <!-- make select smaller -->
+                  <select class="form-select form-select-sm bg-main m-0" name="player" id="player" required>
                     <option selected>Player</option>
                     <option value="Austin">Austin</option>
                     <option value="Carly">Carly</option>
@@ -157,12 +197,13 @@
     var TBL_LOADED = false;
   </script>
   <script>
-    var modes = { 'dev': 'scripts/', 'prod': 'https://cdn.jsdelivr.net/gh/jordan-ewings/pickem/scripts/' };
+    var modes = { 'dev': 'scripts/', 'prod': 'https://cdn.jsdelivr.net/gh/jordan-ewings/pickem@main/scripts/' };
     var scripts = ['base.js', 'procGamesResponses.js', 'forms.js'];
     scripts.forEach((script) => {
       let src = modes[MODE] + script;
+      if (MODE == 'prod') src = src.replace(/\.js$/, '.min.js');
       document.write('<script src="' + src + '"><\/script>');
-    })
+    });
   </script>
   <!-- <script src="https://cdn.jsdelivr.net/gh/jordan-ewings/pickem/scripts/base.js"></script> -->
   <!-- <script src="https://cdn.jsdelivr.net/gh/jordan-ewings/pickem/scripts/procGamesResponses.js"></script> -->
@@ -218,6 +259,7 @@
     }
   </script>
   <script>
+
 
     sendData();
 

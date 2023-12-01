@@ -230,14 +230,27 @@ function prepareForm(e) {
   let mHeader = document.getElementById('modalFormContainerLabel');
   let headtext = 'Week ' + weekNum;
   mHeader.innerHTML = '';
-  mHeader.textContent = headtext;
+  // mHeader.textContent = headtext;
+  mHeader.appendChild(document.createTextNode(headtext));
 
   let mSub = document.getElementById('modalFormSubtitle');
-  let subtext = openGames + ' game' + (openGames == 1 ? '' : 's') + ' available';
   let ttlGames = tblrows.length;
-  if (ttlGames != pickedGames) subtext += ' (' + pickedGames + '/' + ttlGames + ' picked)';
-  if (openGames == 0) subtext = 'Complete';
-  mSub.textContent = subtext;
+  let subtext = ttlGames + ' game' + ((ttlGames == 1) ? '' : 's') + ' (';
+  if (openGames == 0) {
+    subtext += 'all closed)';
+  } else {
+    subtext += openGames + ' open)';
+  }
+  mSub.innerHTML = '';
+  mSub.appendChild(document.createTextNode(subtext));
+
+  let mSub2 = document.getElementById('modalFormSubtitle2');
+
+  let subtext2 = pickedGames + ' of ' + ttlGames + ' games picked';
+  if (pickedGames == 0) subtext2 = 'No games picked';
+  mSub2.textContent = subtext2;
+  mSub2.innerHTML = '';
+  mSub2.appendChild(document.createTextNode(subtext2));
 
   updateTimeRemainingDivs();
   if (modal.hasAttribute('data-dlclocklistener') == false) {
