@@ -211,7 +211,7 @@
     var TBL_LOADED = false;
   </script>
   <script>
-    var modes = { 'dev': 'scripts/', 'prod': 'https://cdn.jsdelivr.net/gh/jordan-ewings/pickem@main/scripts/' };
+    var modes = { 'dev': 'scripts/', 'prod': 'https://cdn.jsdelivr.net/gh/jordan-ewings/pickem/scripts/' };
     var scripts = ['base.js', 'procGamesResponses.js', 'forms.js'];
     scripts.forEach((script) => {
       let src = modes[MODE] + script;
@@ -223,6 +223,9 @@
   <!-- <script src="https://cdn.jsdelivr.net/gh/jordan-ewings/pickem/scripts/procGamesResponses.js"></script> -->
   <!-- <script src="https://cdn.jsdelivr.net/gh/jordan-ewings/pickem/scripts/forms.js"></script> -->
   <script>
+
+
+
     async function getData() {
 
       if (DATA_LOADED == false) {
